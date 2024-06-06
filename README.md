@@ -1,0 +1,1 @@
+This is my first AI and is made and tested for my bachelor's degree in computer science. 
