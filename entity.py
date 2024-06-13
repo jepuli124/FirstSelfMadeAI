@@ -1,12 +1,13 @@
 class entity():
-    def __init__(self):
-        self.x = None
-        self.y = None
-        self.xMomentum = 0
-        self.yMomentum = 0
-        self.speed = 10
-        self.jumpForce = 5
-        self.gravitation = 1
+    def __init__(self, x = None, y = None, xMomentum = 0, yMomentum = 0, speed = 10, jumpForce = 5, gravitation = 1, isPlayer = False):
+        self.x = x
+        self.y = y
+        self.xMomentum = xMomentum
+        self.yMomentum = yMomentum
+        self.speed = speed
+        self.jumpForce = jumpForce
+        self.gravitation = gravitation
+        self.isPlayer = isPlayer
             
     def getLocation(self):
         return (self.x, self.y)
