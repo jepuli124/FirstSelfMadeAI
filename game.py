@@ -130,18 +130,34 @@ def collisionHandler(map, entitiesList):
             collisionChecker(entitiesList[entity1], entitiesList[entity2])
         for line in map.objects:
             for tile in line:
-                if tile == None:
+                if tile == None or tile.image == BALL:
                     continue
-                collisionChecker(entitiesList[entity1], tile)
+                loop, side, amount = collisionChecker(entitiesList[entity1], tile)
+                
+                while loop: 
+                    #if loop: print(entitiesList[entity1].getCenter())
+                    match side:
+                        case "x":
+                            entitiesList[entity1].x += amount - tile.size + 1
+                            entitiesList[entity1].xMomentum = 0
+                            print("to the x")
+                        case "y":
+                            entitiesList[entity1].y += amount - tile.size + 1
+                            entitiesList[entity1].yMomentum = 0
+                            print("to the y")
+                    loop,side, amount = collisionChecker(entitiesList[entity1], tile)
+
 
 
 
 def collisionChecker(object1, object2):
-    xDistance = abs(object1.x - object2.x)
-    yDistance = abs(object1.y - object2.y)
-    if xDistance <= object1.size and yDistance <= object1.size:
-        return True
-    return False
+    xDistance = object1.x - object2.x
+    yDistance = object1.y - object2.y
+    if abs(xDistance) <= object1.size and abs(yDistance) <= object1.size:
+        if abs(xDistance) > abs(yDistance):
+                return True, "x", xDistance
+        return True, "y", yDistance
+    return False, "", 0
 
 def endGame(pressedKeys):
     for event in pygame.event.get():
