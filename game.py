@@ -59,25 +59,26 @@ def mapDecoder():
 
 
 def newFrame(map, EntitiesList):
-    pygame.draw.rect(window, (0,0,0), [0, 0, windowSize[0], windowSize[1]])
+    pygame.draw.rect(window, (0,0,20), [0, 0, windowSize[0], windowSize[1]])
     for xtimes, x in enumerate(map.objects):
-        for ytimes, y in enumerate(x):
-            match y:
-                case "block":
-                    window.blit(BLOCK, (128*(xtimes), 128*(ytimes)))
-                case "triangle":
-                    window.blit(SPIKE, (128*(xtimes), 128*(ytimes)))
-                case "start":
-                    window.blit(BALL, (128*(xtimes), 128*(ytimes)))
-                case "end":
-                    window.blit(BALL, (128*(xtimes), 128*(ytimes)))
-                case _:
-                    pass
+       for ytimes, y in enumerate(x):
+           match y:
+               case "block":
+                   window.blit(BLOCK, (128*(xtimes), 128*(ytimes)))
+               case "triangle":
+                   window.blit(SPIKE, (128*(xtimes), 128*(ytimes)))
+            #    case "start":
+            #        window.blit(BALL, (128*(xtimes), 128*(ytimes)))
+               case "end":
+                   window.blit(BALL, (128*(xtimes), 128*(ytimes)))
+               case _:
+                   pass
             
-    
+
     for entity in EntitiesList:
         if entity.x != None:
             window.blit(entity.image, (entity.x, entity.y))
+
     
     pygame.display.flip()
 
@@ -93,6 +94,12 @@ def playerActions(pressedKeys, player):
 
 
 def upkeep(map, EntitiesList):
+    if EntitiesList[0].x == None:
+        startX, startY =  tileLocation("start", map) 
+        if startX != None:
+            EntitiesList[0].setLocation(startX, startY)
+
+    moveEntities(EntitiesList)
     return map, EntitiesList
 
 def moveEntities(entitiesList):
@@ -100,6 +107,24 @@ def moveEntities(entitiesList):
         if entity.x != None:
             entity.move()
 
+def tileLocation(name, map):
+    for xnumber, x in enumerate(map.objects):
+        for ynumber, y in enumerate(x):
+            if y == name:
+                
+                return xnumber * 128, ynumber * 128
+                
+    return None
+
+
+def endGame(pressedKeys):
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            return True
+    if pressedKeys[pygame.K_ESCAPE]:
+        return True
+        
+            
 
 def gameLoop():
     run = True
@@ -107,21 +132,21 @@ def gameLoop():
     FPS = 30
     map = mapDecoder()
     EntitiesList = []
-    EntitiesList.append(e.entity(x = None, y = None, xMomentum = 0, yMomentum = 0, speed = 10, jumpForce = 5, gravitation = 1, isPlayer = True))
+    EntitiesList.append(e.entity(x = None, y = None, speed = 5, jumpForce = 10, isPlayer = True))
     while run:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-                break
+        
         pressedKeys = pygame.key.get_pressed()
-        if pressedKeys[pygame.K_ESCAPE]:
+        
+        if endGame(pressedKeys):
             run = False
             break
+
         playerActions(pressedKeys, EntitiesList[0])
         
         map, EntitiesList = upkeep(map, EntitiesList)
 
         newFrame(map, EntitiesList)
+
         clock.tick(FPS)
 
     return
