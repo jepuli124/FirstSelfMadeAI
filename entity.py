@@ -1,5 +1,7 @@
+from image import *
+
 class entity():
-    def __init__(self, x = None, y = None, xMomentum = 0, yMomentum = 0, speed = 10, jumpForce = 5, gravitation = 1, isPlayer = False):
+    def __init__(self, x = None, y = None, xMomentum = 0, yMomentum = 0, speed = 10, jumpForce = 5, gravitation = 1, isPlayer = False, image = BALL):
         self.x = x
         self.y = y
         self.xMomentum = xMomentum
@@ -8,6 +10,7 @@ class entity():
         self.jumpForce = jumpForce
         self.gravitation = gravitation
         self.isPlayer = isPlayer
+        self.image = image
             
     def getLocation(self):
         return (self.x, self.y)

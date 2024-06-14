@@ -1,6 +1,7 @@
 import pygame
 import entity as e
 import map as m
+from image import * 
 
 pygame.init()
 
@@ -20,9 +21,7 @@ pygame.display.flip()
 # Loading images
 #
 
-BALL = pygame.image.load("Textures/ball.png")
-BLOCK = pygame.image.load("Textures/block.png")
-SPIKE = pygame.image.load("Textures/spike.png")
+
 
 
 
@@ -78,7 +77,7 @@ def newFrame(map, EntitiesList):
     
     for entity in EntitiesList:
         if entity.x != None:
-            window.blit(BALL, (entity.x, entity.y))
+            window.blit(entity.image, (entity.x, entity.y))
     
     pygame.display.flip()
 
