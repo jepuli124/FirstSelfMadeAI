@@ -31,44 +31,47 @@ def mapDecoder():
     with open("map/test.txt") as mapfile:
         map = mapfile.readlines()
         length = 0
+        hight = 0
+        returnableMap = []
         for line in map:
+            hight += 1
             if len(line) > length:
                 length = len(line)
-        returnableMap = [["air"] * length] * len(map)
+
+        for line in range(length):
+            xAxis = ["air"] * hight
+            returnableMap.append(xAxis.copy())
 
         for xnumber, x in enumerate(map):
             for ynumber, y in enumerate(x):
                 match y:
                     case "b":
-                        returnableMap[xnumber][ynumber] = "block"
+                        returnableMap[ynumber][xnumber] = "block"
                     case "t":
-                        returnableMap[xnumber][ynumber] = "triangle"
+                        returnableMap[ynumber][xnumber] = "triangle"
                     case "s":
-                        returnableMap[xnumber][ynumber] = "start"
+                        returnableMap[ynumber][xnumber] = "start"
                     case "e":
-                        returnableMap[xnumber][ynumber] = "end"
+                        returnableMap[ynumber][xnumber] = "end"
                     case _:
                         pass
-    for line in returnableMap:  
-        print(line)
+
     return m.map(returnableMap)
 
 
 def newFrame(map, EntitiesList):
-
+    pygame.draw.rect(window, (0,0,0), [0, 0, windowSize[0], windowSize[1]])
     for xtimes, x in enumerate(map.objects):
-        print("")
         for ytimes, y in enumerate(x):
-            print(y, end="")
             match y:
                 case "block":
-                    window.blit(BLOCK, (128*(xtimes-1), 128*(ytimes-1)))
+                    window.blit(BLOCK, (128*(xtimes), 128*(ytimes)))
                 case "triangle":
-                    window.blit(SPIKE, (128*(xtimes-1), 128*(ytimes-1)))
+                    window.blit(SPIKE, (128*(xtimes), 128*(ytimes)))
                 case "start":
-                    window.blit(BALL, (128*(xtimes-1), 128*(ytimes-1)))
+                    window.blit(BALL, (128*(xtimes), 128*(ytimes)))
                 case "end":
-                    window.blit(BALL, (128*(xtimes-1), 128*(ytimes-1)))
+                    window.blit(BALL, (128*(xtimes), 128*(ytimes)))
                 case _:
                     pass
             
@@ -100,14 +103,20 @@ def moveEntities(entitiesList):
 
 
 def gameLoop():
+    run = True
     clock = pygame.time.Clock()
     FPS = 30
     map = mapDecoder()
     EntitiesList = []
     EntitiesList.append(e.entity(x = None, y = None, xMomentum = 0, yMomentum = 0, speed = 10, jumpForce = 5, gravitation = 1, isPlayer = True))
-    while True:
+    while run:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+                break
         pressedKeys = pygame.key.get_pressed()
         if pressedKeys[pygame.K_ESCAPE]:
+            run = False
             break
         playerActions(pressedKeys, EntitiesList[0])
         
@@ -115,7 +124,6 @@ def gameLoop():
 
         newFrame(map, EntitiesList)
         clock.tick(FPS)
-        break
 
     return
 
