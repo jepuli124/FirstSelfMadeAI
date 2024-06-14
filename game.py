@@ -1,5 +1,6 @@
 import pygame
 import entity as e
+import mapTile as mT
 import map as m
 from image import * 
 
@@ -38,69 +39,75 @@ def mapDecoder():
                 length = len(line)
 
         for line in range(length):
-            xAxis = ["air"] * hight
+            xAxis = [None] * hight
             returnableMap.append(xAxis.copy())
 
-        for xnumber, x in enumerate(map):
-            for ynumber, y in enumerate(x):
-                match y:
+        for ynumber, y in enumerate(map):
+            for xnumber, x in enumerate(y):
+                match x:
                     case "b":
-                        returnableMap[ynumber][xnumber] = "block"
+                        returnableMap[xnumber][ynumber] = mT.mapTile("block", x = 128*(xnumber), y = 128*(ynumber), image= BLOCK)
                     case "t":
-                        returnableMap[ynumber][xnumber] = "triangle"
+                        returnableMap[xnumber][ynumber] = mT.mapTile("triangle", x = 128*(xnumber), y = 128*(ynumber), image= SPIKE)
                     case "s":
-                        returnableMap[ynumber][xnumber] = "start"
+                        returnableMap[xnumber][ynumber] = mT.mapTile("start", x = 128*(xnumber), y = 128*(ynumber), image= BALL)
                     case "e":
-                        returnableMap[ynumber][xnumber] = "end"
+                        returnableMap[xnumber][ynumber] = mT.mapTile("end", x = 128*(xnumber), y = 128*(ynumber), image= BALL)
                     case _:
                         pass
 
     return m.map(returnableMap)
 
 
-def newFrame(map, EntitiesList):
+def newFrame(map, entitiesList):
     pygame.draw.rect(window, (0,0,20), [0, 0, windowSize[0], windowSize[1]])
-    for xtimes, x in enumerate(map.objects):
-       for ytimes, y in enumerate(x):
-           match y:
-               case "block":
-                   window.blit(BLOCK, (128*(xtimes), 128*(ytimes)))
-               case "triangle":
-                   window.blit(SPIKE, (128*(xtimes), 128*(ytimes)))
-            #    case "start":
-            #        window.blit(BALL, (128*(xtimes), 128*(ytimes)))
-               case "end":
-                   window.blit(BALL, (128*(xtimes), 128*(ytimes)))
-               case _:
-                   pass
+    for x in map.objects:
+       for tile in x:
+           if tile == None:
+               continue
+           window.blit(tile.image, relativeLocationOfToPlayer(entitiesList[0], tile))
             
 
-    for entity in EntitiesList:
+    for entity in entitiesList:
         if entity.x != None:
-            window.blit(entity.image, (entity.x, entity.y))
+            if entity == entitiesList[0]:
+                window.blit(entity.image, ((windowSize[0]/2) - entity.size/2, (windowSize[1]/2) + entity.size/2))
+            else:
+                window.blit(entity.image, (entity.x, entity.y))
 
     
     pygame.display.flip()
 
+# def relativeLocationOfTileToPlayer(player, tileX, tileY):
+#     x = 128*(tileX)-player.x+windowSize[0]/2
+#     y = 128*(tileY)-player.y+windowSize[1]/2
+#     return x, y
+
+def relativeLocationOfToPlayer(player, entity):
+    x = (entity.x)-player.getCenter()[0]+windowSize[0]/2
+    y = (entity.y)-player.getCenter()[1]+windowSize[1]/2
+    return x, y
+
 def playerActions(pressedKeys, player):
     if pressedKeys[pygame.K_w] or pressedKeys[pygame.K_UP] or pressedKeys[pygame.K_SPACE]:
-        player.jump()
+        player.jump(1)
     if pressedKeys[pygame.K_a] or pressedKeys[pygame.K_LEFT]:
         player.addMomentum(-1)
     if pressedKeys[pygame.K_s] or pressedKeys[pygame.K_DOWN]:
-        pass
+        player.jump(-1)
     if pressedKeys[pygame.K_d] or pressedKeys[pygame.K_RIGHT]:
         player.addMomentum(1)
 
 
-def upkeep(map, EntitiesList):
-    if EntitiesList[0].x == None:
+def upkeep(map, entitiesList): # collection of misc. actions to keep game going 
+    if entitiesList[0].x == None:
         startX, startY =  tileLocation("start", map) 
         if startX != None:
-            EntitiesList[0].setLocation(startX, startY)
+            entitiesList[0].setLocation(startX, startY)
 
-    moveEntities(EntitiesList)
-    return map, EntitiesList
+    moveEntities(entitiesList)
+    collisionHandler(map, entitiesList)
+    return map, entitiesList
 
 def moveEntities(entitiesList):
     for entity in entitiesList:
@@ -108,14 +115,33 @@ def moveEntities(entitiesList):
             entity.move()
 
 def tileLocation(name, map):
-    for xnumber, x in enumerate(map.objects):
-        for ynumber, y in enumerate(x):
-            if y == name:
-                
-                return xnumber * 128, ynumber * 128
+    for x in map.objects:
+        for y in x:
+            if y == None:
+               continue
+            if y.name == name:
+                return y.x, y.y
                 
     return None
 
+def collisionHandler(map, entitiesList):
+    for entity1 in range(len(entitiesList)):
+        for entity2 in range(entity1 + 1, len(entitiesList)):
+            collisionChecker(entitiesList[entity1], entitiesList[entity2])
+        for line in map.objects:
+            for tile in line:
+                if tile == None:
+                    continue
+                collisionChecker(entitiesList[entity1], tile)
+
+
+
+def collisionChecker(object1, object2):
+    xDistance = abs(object1.x - object2.x)
+    yDistance = abs(object1.y - object2.y)
+    if xDistance <= object1.size and yDistance <= object1.size:
+        return True
+    return False
 
 def endGame(pressedKeys):
     for event in pygame.event.get():
@@ -131,22 +157,22 @@ def gameLoop():
     clock = pygame.time.Clock()
     FPS = 30
     map = mapDecoder()
-    EntitiesList = []
-    EntitiesList.append(e.entity(x = None, y = None, speed = 5, jumpForce = 10, isPlayer = True))
+    entitiesList = []
+    entitiesList.append(e.entity(x = None, y = None, speed = 5, jumpForce = 10, isPlayer = True))
     while run:
         
         pressedKeys = pygame.key.get_pressed()
-        
+
         if endGame(pressedKeys):
             run = False
             break
 
-        playerActions(pressedKeys, EntitiesList[0])
+        playerActions(pressedKeys, entitiesList[0])
         
-        map, EntitiesList = upkeep(map, EntitiesList)
+        map, entitiesList = upkeep(map, entitiesList)
 
-        newFrame(map, EntitiesList)
-
+        newFrame(map, entitiesList)
+        
         clock.tick(FPS)
 
     return
