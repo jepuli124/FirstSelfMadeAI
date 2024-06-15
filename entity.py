@@ -39,8 +39,8 @@ class entity():
 
 
     def slowdown(self): # slowsdown movement speed to make the game feel dynamic
-        self.xMomentum = self.xMomentum * 0.8
-        self.yMomentum = self.yMomentum * 0.9
+        self.xMomentum = self.xMomentum * 0.7
+        self.yMomentum = self.yMomentum * 0.7
 
         if abs(self.xMomentum) < 0.01:
             self.xMomentum = 0

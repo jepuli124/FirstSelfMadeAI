@@ -1,4 +1,5 @@
 import pygame
+import math
 import entity as e
 import mapTile as mT
 import map as m
@@ -132,32 +133,63 @@ def collisionHandler(map, entitiesList):
             for tile in line:
                 if tile == None or tile.image == BALL:
                     continue
-                loop, side, amount = collisionChecker(entitiesList[entity1], tile)
+                loop, side = collisionChecker(entitiesList[entity1], tile)
                 
                 while loop: 
                     #if loop: print(entitiesList[entity1].getCenter())
                     match side:
-                        case "x":
-                            entitiesList[entity1].x += amount - tile.size + 1
+                        case "xNegative":
+                            entitiesList[entity1].x = math.floor(entitiesList[entity1].x) - 1
                             entitiesList[entity1].xMomentum = 0
-                            print("to the x")
-                        case "y":
-                            entitiesList[entity1].y += amount - tile.size + 1
+
+                        case "xPositive":
+                            entitiesList[entity1].x = math.floor(entitiesList[entity1].x) + 1
+                            entitiesList[entity1].xMomentum = 0
+
+                        case "yNegative":
+                            entitiesList[entity1].y = math.floor(entitiesList[entity1].y) - 1
                             entitiesList[entity1].yMomentum = 0
-                            print("to the y")
-                    loop,side, amount = collisionChecker(entitiesList[entity1], tile)
+
+                        case "yPositive":
+                            entitiesList[entity1].y = math.floor(entitiesList[entity1].y) + 1
+                            entitiesList[entity1].yMomentum = 0
+
+                    loop, _ = collisionChecker(entitiesList[entity1], tile)
 
 
 
 
 def collisionChecker(object1, object2):
-    xDistance = object1.x - object2.x
-    yDistance = object1.y - object2.y
-    if abs(xDistance) <= object1.size and abs(yDistance) <= object1.size:
-        if abs(xDistance) > abs(yDistance):
-                return True, "x", xDistance
-        return True, "y", yDistance
-    return False, "", 0
+    object1CornerPoints = [(object1.x, object1.y), (object1.x+object1.size, object1.y), (object1.x, object1.y+object1.size), (object1.x+object1.size, object1.y+object1.size)] 
+    for pointNumber, point in enumerate(object1CornerPoints):
+        if (point[0] <= object2.x + object2.size and point[0] >= object2.x) and (point[1] <= object2.y + object2.size and point[1] >= object2.y):
+            xNegative = abs(point[0] - object2.x)
+            xPositive = abs(point[0] - (object2.x + object2.size))
+            yNegative = abs(point[1] - object2.y)
+            yPositive = abs(point[1] - (object2.y + object2.size)) 
+            match pointNumber:
+                case 0:
+                    if yPositive > xPositive:
+                        return True, "xPositive"
+                    else:
+                        return True, "yPositive"
+                case 1:
+                    if yPositive > xNegative:
+                        return True, "xNegative"
+                    else:
+                        return True, "yPositive"
+                case 2:
+                    if yNegative > xPositive:
+                        return True, "xPositive"
+                    else:
+                        return True, "yNegative"
+                case 3:
+                    if yNegative > xNegative:
+                        return True, "xNegative"
+                    else:
+                        return True, "yNegative"
+    return False, ""
+    
 
 def endGame(pressedKeys):
     for event in pygame.event.get():
@@ -174,7 +206,7 @@ def gameLoop():
     FPS = 30
     map = mapDecoder()
     entitiesList = []
-    entitiesList.append(e.entity(x = None, y = None, speed = 5, jumpForce = 10, isPlayer = True))
+    entitiesList.append(e.entity(x = None, y = None, speed = 5, jumpForce = 5, isPlayer = True))
     while run:
         
         pressedKeys = pygame.key.get_pressed()
