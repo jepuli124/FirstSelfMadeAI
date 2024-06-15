@@ -5,20 +5,27 @@ import mapTile as mT
 import map as m
 from image import * 
 
-pygame.init()
-
+# the only global variable
 windowSize = (1280, 720)
-window = pygame.display.set_mode(windowSize)
+window = None
 
-pygame.display.set_caption("game")
+def start():
+    global window
+    pygame.init()
+    
+    windowSize = (1280, 720)
+    window = pygame.display.set_mode(windowSize)
+
+    pygame.display.set_caption("game")
+
+
+    font = pygame.font.Font('freesansbold.ttf', 150)
+    starttext = font.render("Loading", True, (255, 255, 255))
+    window.blit(starttext, ((windowSize[0]/2)-300, (windowSize[1]/2)-75))
+    pygame.display.flip()
 
 # A1 = pygame.image.load("pict/Bg.png") example code
 # window.blit(A1, (0, 0))
-font = pygame.font.Font('freesansbold.ttf', 150)
-starttext = font.render("Loading", True, (255, 255, 255))
-window.blit(starttext, ((windowSize[0]/2)-300, (windowSize[1]/2)-75))
-pygame.display.flip()
-
 
 # Loading images
 #
@@ -28,36 +35,40 @@ pygame.display.flip()
 
 
 
-def mapDecoder():
-    with open("map/test.txt") as mapfile:
-        map = mapfile.readlines()
-        length = 0
-        hight = 0
-        returnableMap = []
-        for line in map:
-            hight += 1
-            if len(line) > length:
-                length = len(line)
+def mapDecoder(mapName):
+    try:
+        with open("map/"+mapName+".txt") as mapfile:
+            map = mapfile.readlines()
+            length = 0
+            hight = 0
+            returnableMap = []
+            for line in map:
+                hight += 1
+                if len(line) > length:
+                    length = len(line)
 
-        for line in range(length):
-            xAxis = [None] * hight
-            returnableMap.append(xAxis.copy())
+            for line in range(length):
+                xAxis = [None] * hight
+                returnableMap.append(xAxis.copy())
 
-        for ynumber, y in enumerate(map):
-            for xnumber, x in enumerate(y):
-                match x:
-                    case "b":
-                        returnableMap[xnumber][ynumber] = mT.mapTile("block", x = 128*(xnumber), y = 128*(ynumber), image= BLOCK)
-                    case "t":
-                        returnableMap[xnumber][ynumber] = mT.mapTile("triangle", x = 128*(xnumber), y = 128*(ynumber), image= SPIKE)
-                    case "s":
-                        returnableMap[xnumber][ynumber] = mT.mapTile("start", x = 128*(xnumber), y = 128*(ynumber), image= BALL)
-                    case "e":
-                        returnableMap[xnumber][ynumber] = mT.mapTile("end", x = 128*(xnumber), y = 128*(ynumber), image= BALL)
-                    case _:
-                        pass
+            for ynumber, y in enumerate(map):
+                for xnumber, x in enumerate(y):
+                    match x:
+                        case "b":
+                            returnableMap[xnumber][ynumber] = mT.mapTile("block", x = 128*(xnumber), y = 128*(ynumber), image= BLOCK)
+                        case "t":
+                            returnableMap[xnumber][ynumber] = mT.mapTile("triangle", x = 128*(xnumber), y = 128*(ynumber), image= SPIKE)
+                        case "s":
+                            returnableMap[xnumber][ynumber] = mT.mapTile("start", x = 128*(xnumber), y = 128*(ynumber), image= BALL)
+                        case "e":
+                            returnableMap[xnumber][ynumber] = mT.mapTile("end", x = 128*(xnumber), y = 128*(ynumber), image= BALL)
+                        case _:
+                            pass
 
-    return m.map(returnableMap)
+        return m.map(returnableMap)
+    except:
+        print("map not found")
+        return False
 
 
 def newFrame(map, entitiesList):
@@ -200,11 +211,13 @@ def endGame(pressedKeys):
         
             
 
-def gameLoop():
+def gameLoop(fileName):
     run = True
     clock = pygame.time.Clock()
     FPS = 30
-    map = mapDecoder()
+    map = mapDecoder(fileName)
+    if map == False:
+        return
     entitiesList = []
     entitiesList.append(e.entity(x = None, y = None, speed = 5, jumpForce = 5, isPlayer = True))
     while run:
@@ -225,8 +238,11 @@ def gameLoop():
 
     return
 
+def end():
+    pygame.quit()
 
-gameLoop()
 
-pygame.quit()
+#gameLoop()
+
+#pygame.quit()
 
