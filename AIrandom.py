@@ -7,19 +7,7 @@ def run(size):
         map.append([" "] * size[0])
 
     map = generateMap(map) 
-
-    fileNameCounter = 0
-    run = True
-    while run:
-        try:
-            file = open("map/random"+ str(fileNameCounter) +".txt", "xt")
-            run = False
-        except:
-            fileNameCounter += 1
-    for line in map:
-        for object in line:
-            file.write(object) 
-        file.write("\n")   
+    writeFile(map)
 
 
 def generateMap(map):
@@ -35,3 +23,17 @@ def generateMap(map):
     map[random.randint(0, len(map)-1)][random.randint(0, len(map[0])-1)] = "s" #start point
     return map
             
+def writeFile(map):
+    fileNameCounter = 0
+    run = True
+    while run:
+        try:
+            file = open("map/random"+ str(fileNameCounter) +".txt", "xt")
+            run = False
+        except:
+            fileNameCounter += 1
+    for line in map:
+        for object in line:
+            file.write(object) 
+        file.write("\n")   
+    file.close()

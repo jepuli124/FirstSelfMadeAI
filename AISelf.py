@@ -1,3 +1,0 @@
-
-def run(mapSize):
-    pass

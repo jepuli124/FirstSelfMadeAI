@@ -1,4 +1,4 @@
-import AIrandom, AISelf, AITorch
+import AIrandom, selfAIRunner, AITorch
 import enviroment
 import game
 import os
@@ -39,7 +39,7 @@ def mainLoop():
                     case "1":
                         AIrandom.run(mapSize)
                     case "2":
-                        AISelf.run(mapSize)
+                        selfAIRunner.run(mapSize)
                     case "3":
                         AITorch.run(mapSize)
 
