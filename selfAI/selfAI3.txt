@@ -1,0 +1,19 @@
+Layers: 
+Layer 1
+0.72920029738801560.61060673282094930.53766615517914870.64548630020193010.462996161147280150.57870452828207760.270547274004791840.130839652057705870.58298336837127280.028414449003817954
+Layer 2
+0.51211529487868380.117399762985354260.90149013722843960.0274734510690722860.51521345031339490.89746193230935930.0424529750459032850.53963622189159310.67101184765293680.763726172666447
+Layer 3
+0.038906059172329810.383356096089968570.52567039950755020.80574469592467790.36757130479519820.80488958948577170.369138066350099940.185729069076152720.239168885061626370.4628555038380522
+Layer 4
+0.39377655144318590.92887967218866770.139188430909341740.232000786728735250.75242441639522920.37364241092486340.28379416729663090.89667410535462210.135612460622000940.36242857548836493
+Bridges: 
+Bridge between layers: 1and2
+<node.node object at 0x7f67e23e0670><node.node object at 0x7f67df4dc670><node.node object at 0x7f67df4dc6d0><node.node object at 0x7f67df4dc730><node.node object at 0x7f67df4dc790><node.node object at 0x7f67df4dc7f0><node.node object at 0x7f67df4dc850><node.node object at 0x7f67df4dc8b0><node.node object at 0x7f67df4dc910><node.node object at 0x7f67df4dc970>
+Bridge between layers: 2and3
+<node.node object at 0x7f67e23e06d0><node.node object at 0x7f67df4dca30><node.node object at 0x7f67df4dca90><node.node object at 0x7f67df4dcaf0><node.node object at 0x7f67df4dcb50><node.node object at 0x7f67df4dcbb0><node.node object at 0x7f67df4dcc10><node.node object at 0x7f67df4dcc70><node.node object at 0x7f67df4dccd0><node.node object at 0x7f67df4dcd30>
+Bridge between layers: 3and4
+<node.node object at 0x7f67df4dc9d0><node.node object at 0x7f67df4dcdf0><node.node object at 0x7f67df4dce50><node.node object at 0x7f67df4dceb0><node.node object at 0x7f67df4dcf10><node.node object at 0x7f67df4dcf70><node.node object at 0x7f67df4dcfd0><node.node object at 0x7f67df4dd030><node.node object at 0x7f67df4dd090><node.node object at 0x7f67df4dd0f0>
+Bridge between layers: 4and5
+<node.node object at 0x7f67df4dcd90><node.node object at 0x7f67df4dd1b0><node.node object at 0x7f67df4dd210><node.node object at 0x7f67df4dd270><node.node object at 0x7f67df4dd2d0><node.node object at 0x7f67df4dd330><node.node object at 0x7f67df4dd390><node.node object at 0x7f67df4dd3f0><node.node object at 0x7f67df4dd450><node.node object at 0x7f67df4dd4b0>
+Network layer size: 10

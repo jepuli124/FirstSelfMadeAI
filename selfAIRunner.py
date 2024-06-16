@@ -9,6 +9,7 @@ def run(mapSize, AILayerSize, AIlayerAmount):
         writeFile(mapAsText)
     else:
         run(mapSize, AILayerSize, AIlayerAmount)
+    return newAI
     
 
 def loadAI():
@@ -21,8 +22,46 @@ def loadAI():
         file.close()
         return None
     
-def saveAI():
-    pass 
+def saveAI(AI):
+    fileNameCounter = 0
+    run = True
+    while run:
+        try:
+            file = open("selfAI/selfAI"+ str(fileNameCounter) +".txt", "xt")
+            run = False
+        except:
+            fileNameCounter += 1
+
+    file.write("Layers: \n")
+    layerCounter = 0
+    for layer in AI.layers:
+        layerCounter += 1
+        file.write("Layer "+ str(layerCounter)+ "\n")
+        for object in layer:
+            file.write(str(object.bias)+ " ") 
+        file.write("\n")   
+    
+    file.write("Bridges: \n")
+    bridgeCounter = 0
+    for bridge in range(len(AI.bridges) - 1):
+        bridgeCounter += 1
+        file.write("Bridge between layers: "+ str(bridgeCounter)+ " and "+ str(bridgeCounter + 1)+ "\n")
+        for matrix in AI.bridges[bridge]:
+            for line in matrix:
+                file.write(str(line)+ " ") 
+            file.write("\n")
+
+    file.write("Last Bridge: \n")
+    for matrix in AI.bridges[-1]:
+        file.write("matrix: \n")
+        for line in matrix:
+            for object in line:
+                file.write(str(object)+ " ")
+            file.write("\n")
+
+    file.write("Network layer size: "+ str(AI.networkLayerSize))
+
+    file.close() 
 
 def outputToObjects(map):
     outputMap = [] 
@@ -55,7 +94,7 @@ def writeFile(map):
     run = True
     while run:
         try:
-            file = open("map/selfAI"+ str(fileNameCounter) +".txt", "xt")
+            file = open("map/selfAIMap"+ str(fileNameCounter) +".txt", "xt")
             run = False
         except:
             fileNameCounter += 1

@@ -47,8 +47,13 @@ def mainLoop():
                         if "y" in userInput.lower():
                             userInput = input("How many nodes per layer and how many layers? ")
                             AISize = numberParser(userInput)
+                        newAI = selfAIRunner.run(mapSize, AISize[0], AISize[1])
 
-                        selfAIRunner.run(mapSize, AISize[0], AISize[1])
+                        userInput = input("Do you want to save the new AI? ")
+                        if "y" in userInput.lower():
+                            selfAIRunner.saveAI(newAI)
+
+                        
                     case "3":
                         AITorch.run(mapSize)
 
