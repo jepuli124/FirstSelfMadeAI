@@ -48,17 +48,9 @@ class selfAI():
             for x in range(mapSize[0]):
                 line.append(random.random())
             map.append(line.copy())
-        
-        print("random map:")
-        for line in map:
-            print(line)
 
         self.output = map.copy()
         self.runNetwork(map, mapSize)
-
-        print("AI output map")
-        for line in self.output:
-            print(line)
 
         return self.output
     
@@ -106,10 +98,3 @@ class selfAI():
                 sum /= counter
                 output[yOutput][xOutput] = sum
 
-
-ai = selfAI()
-ai.makeNewRandomNetwork(6, 4)
-# for x in ai.bridgei1:
-#     print(x[1])
-
-ai.produceMap((4, 4))

@@ -1,10 +1,14 @@
 import selfAI
 
-def run(mapSize, AISize = 10):
+def run(mapSize, AILayerSize, AIlayerAmount):
     newAI = selfAI.selfAI()
-    newAI.makeNewRandomNetwork(AISize)
+    newAI.makeNewRandomNetwork(AILayerSize, AIlayerAmount)
     newMap = newAI.produceMap(mapSize)
-    writeFile(outputToObjects(newMap))
+    mapAsText = outputToObjects(newMap)
+    if mapAsText != None:
+        writeFile(mapAsText)
+    else:
+        run(mapSize, AILayerSize, AIlayerAmount)
     
 
 def loadAI():
@@ -29,19 +33,21 @@ def outputToObjects(map):
             if x < 0.2:
                 outputMap[lineNumber].append(" ")
             elif x < 0.4:
-                outputMap[lineNumber].append(" ")
+                outputMap[lineNumber].append("b")
             elif x < 0.6:
                 outputMap[lineNumber].append("b")
             elif x < 0.8:
-                outputMap[lineNumber].append("b")
+                outputMap[lineNumber].append("t")
             else:
                 outputMap[lineNumber].append("t")
             if x > twoRandomValues[0]:
                 twoRandomValues[2] = twoRandomValues[1]
                 twoRandomValues[1] = (xNumber, lineNumber)
                 twoRandomValues[0] = x
-    outputMap[twoRandomValues[1][1], twoRandomValues[1][0]] = "s"
-    outputMap[twoRandomValues[2][1], twoRandomValues[2][0]] = "e"
+    if twoRandomValues[0] < 0.21:
+        return None
+    outputMap[twoRandomValues[1][1]][twoRandomValues[1][0]] = "s"
+    outputMap[twoRandomValues[2][1]][twoRandomValues[2][0]] = "e"
     return outputMap
         
 def writeFile(map):

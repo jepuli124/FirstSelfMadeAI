@@ -6,21 +6,20 @@ import os
 
 
 def numberParser(mapSize):
-    x, y, state = 0, 0, 0
+    listOfNumbers = []
+    state = 0
     for character in mapSize:
         try:
             number = int(character)
             if state % 2 == 0:
                 state += 1
-            if state == 1:
-                x = x * 10 + number
-            if state == 3:
-                y = y * 10 + number
+                listOfNumbers.append(0)
+            listOfNumbers[-1] = listOfNumbers[-1]*10 + number
         except:
             if state % 2 == 1:
                 state += 1
             pass
-    return (x,y)
+    return listOfNumbers
 
 def mainLoop():
     main = True
@@ -39,7 +38,17 @@ def mainLoop():
                     case "1":
                         AIrandom.run(mapSize)
                     case "2":
-                        selfAIRunner.run(mapSize)
+                        # userInput = input("Do you want to use saved AI? ")
+                        # if "y" in userInput.lower():
+                        #     selfAIRunner.run(mapSize)
+                        # else:
+                        userInput = input("Do you want to configure the new AI? ")
+                        AISize = (10, 5)
+                        if "y" in userInput.lower():
+                            userInput = input("How many nodes per layer and how many layers? ")
+                            AISize = numberParser(userInput)
+
+                        selfAIRunner.run(mapSize, AISize[0], AISize[1])
                     case "3":
                         AITorch.run(mapSize)
 
