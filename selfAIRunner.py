@@ -1,27 +1,110 @@
-import selfAI
+from selfAI import *
+from node import * 
 
-def run(mapSize, AILayerSize, AIlayerAmount):
-    newAI = selfAI.selfAI()
-    newAI.makeNewRandomNetwork(AILayerSize, AIlayerAmount)
-    newMap = newAI.produceMap(mapSize)
+def run(mapSize, AILayerSize, AIlayerAmount, savedAI = None):
+    if savedAI != None:
+        AI = loadAI(savedAI)
+    else:
+        AI = selfAI()
+        AI.makeNewRandomNetwork(AILayerSize, AIlayerAmount)
+    newMap = AI.produceMap(mapSize)
     mapAsText = outputToObjects(newMap)
     if mapAsText != None:
         writeFile(mapAsText)
     else:
-        run(mapSize, AILayerSize, AIlayerAmount)
-    return newAI
+        run(mapSize, AILayerSize, AIlayerAmount, savedAI)
+    if savedAI == None:
+        return AI
+    return None
     
 
-def loadAI():
+def loadAI(savedAI):
+    loadedAI = selfAI()
+    layerData = []
+    bridgesData = []
+    bridgeData = []
+    lastBridgeData = []
     try:
-        with open("selfAI") as AI:
-            pass
-    except:
+        with open("selfAI/"+savedAI+".txt") as AIFile:
+            data = AIFile.readlines()
+            state = 0
+            
+            for line in data:
+                try:
+                    int(line[0])
+                    splitedData = line.split(" ")
+                    splitedData.pop()  # removes \n line marker
+                    match state:
+                        case 0:
+                            layerData.append(splitedData)
+                        case 1:
+                            bridgeData.append(splitedData)
+                        case 2:
+                            lastBridgeData.append(splitedData)
+                        case 3:
+                            loadedAI.networkLayerSize = int(splitedData[-1])
+                            
+                except:
+                    if line[0].upper() == "L": #layers
+                        state = 0 
+                    if line[0].upper() == "B": #Bridges
+                        if len(bridgeData) >= 1:
+                            bridgesData.append(bridgeData.copy())
+                        bridgeData = []
+                        state = 1 
+                    if line[0].upper() == "M": #matrix of last bridge
+                        state = 2 
+                    if line[0].upper() == "N": #Network
+                        state = 3 
+    except FileNotFoundError:
         print("No saved AI")
-        file = open("selfAI/AI.txt","xt")
-        file.close()
         return None
-    
+    loadedAI.layers = makeLayers(layerData)
+    loadedAI.bridges = makeBridges(bridgesData)
+    #loadedAI.bridges.append(makeLastBridge(lastBridgeData))
+    return loadedAI
+
+
+def makeLayers(data):
+    layers = []
+    for line in data:
+        layer = []
+        for cellOfData in line:
+            try:
+                layer.append(node(float(cellOfData)))
+            except:
+                print("File read went wrong during layers, couldn't convert data to float")
+        layers.append(layer.copy())
+    return layers
+
+
+def makeBridges(data):
+    bridges = []
+    for matrix in data:
+        for line in matrix:
+            bridge = []
+            for cellOfData in line:
+                try:
+                    bridge.append((float(cellOfData)))
+                except:
+                    print("File read went wrong during bridges, couldn't convert data to float")
+            bridges.append(bridge.copy())
+    return bridges
+
+def makeLastBridge(data):
+    bridge = []
+    for cube in data:
+        for matrix in cube:
+            for line in matrix:
+                bridgeMatrix = []
+                for cellOfData in line:
+                    try:
+                        bridgeMatrix.append((float(cellOfData)))
+                    except:
+                        print("File read went wrong during lastBridge, couldn't convert data to float")
+                bridge.append(bridgeMatrix.copy())
+    return bridge
+
 def saveAI(AI):
     fileNameCounter = 0
     run = True
@@ -53,7 +136,7 @@ def saveAI(AI):
 
     file.write("Last Bridge: \n")
     for matrix in AI.bridges[-1]:
-        file.write("matrix: \n")
+        file.write("Matrix: \n")
         for line in matrix:
             for object in line:
                 file.write(str(object)+ " ")
@@ -103,3 +186,16 @@ def writeFile(map):
             file.write(object) 
         file.write("\n")   
     file.close()
+
+
+# ai = loadAI("selfAI7")
+# for layer in ai.layers:
+#     for node in layer:
+#         print(str(node.bias), end=" ")
+#     print("Nodes")
+
+# print("bridges")
+# print(len(ai.bridges))
+# for matrix in ai.bridges:
+#     print("matrix")
+#     print(matrix)
