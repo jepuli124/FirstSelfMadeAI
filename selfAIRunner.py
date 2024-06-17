@@ -1,18 +1,28 @@
 from selfAI import *
 from node import * 
 
-def run(mapSize, AILayerSize, AIlayerAmount, savedAI = None):
-    if savedAI != None:
-        AI = loadAI(savedAI)
-    else:
-        AI = selfAI()
-        AI.makeNewRandomNetwork(AILayerSize, AIlayerAmount)
+def run(mapSize, AILayerSize = None, AIlayerAmount = None, savedAI = None, AI = None, repeats = 0):
+    
+    if AI == None:
+        if savedAI != None:
+            AI = loadAI(savedAI)
+        else:
+            AI = selfAI()
+            AI.makeNewRandomNetwork(AILayerSize, AIlayerAmount)
     newMap = AI.produceMap(mapSize)
+    if newMap == None: return None
     mapAsText = outputToObjects(newMap)
     if mapAsText != None:
         writeFile(mapAsText)
     else:
-        run(mapSize, AILayerSize, AIlayerAmount, savedAI)
+        print("map failed, retrying")
+        if repeats > 10:
+            if savedAI == None:
+                run(mapSize, AILayerSize, AIlayerAmount, savedAI=savedAI, repeats= repeats + 1) 
+            return None
+        if repeats > 100:
+            return None
+        run(mapSize, AILayerSize, AIlayerAmount, AI = AI, savedAI=savedAI, repeats= repeats+1)
     if savedAI == None:
         return AI
     return None
@@ -23,7 +33,8 @@ def loadAI(savedAI):
     layerData = []
     bridgesData = []
     bridgeData = []
-    lastBridgeData = []
+    lastBridgeLineData = []
+    lastBridgeMatrixData = []
     try:
         with open("selfAI/"+savedAI+".txt") as AIFile:
             data = AIFile.readlines()
@@ -40,7 +51,7 @@ def loadAI(savedAI):
                         case 1:
                             bridgeData.append(splitedData)
                         case 2:
-                            lastBridgeData.append(splitedData)
+                            lastBridgeLineData.append(splitedData)
                         case 3:
                             loadedAI.networkLayerSize = int(splitedData[-1])
                             
@@ -53,15 +64,26 @@ def loadAI(savedAI):
                         bridgeData = []
                         state = 1 
                     if line[0].upper() == "M": #matrix of last bridge
+                        if len(bridgeData) >= 1:
+                            bridgesData.append(bridgeData.copy())
+                            bridgeData = []
+                        if len(lastBridgeLineData) >= 1:
+                            lastBridgeMatrixData.append(lastBridgeLineData.copy())
+                        lastBridgeLineData = []
                         state = 2 
                     if line[0].upper() == "N": #Network
+                        if len(lastBridgeLineData) >= 1:
+                            lastBridgeMatrixData.append(lastBridgeLineData.copy())
+                            lastBridgeLineData = []
                         state = 3 
+                        splitedData = line.split(" ")
+                        loadedAI.networkLayerSize = int(splitedData[-1])
     except FileNotFoundError:
         print("No saved AI")
         return None
     loadedAI.layers = makeLayers(layerData)
     loadedAI.bridges = makeBridges(bridgesData)
-    #loadedAI.bridges.append(makeLastBridge(lastBridgeData))
+    loadedAI.bridges.append(makeLastBridge(lastBridgeMatrixData))
     return loadedAI
 
 
@@ -81,6 +103,7 @@ def makeLayers(data):
 def makeBridges(data):
     bridges = []
     for matrix in data:
+        bridgeMatrix = []
         for line in matrix:
             bridge = []
             for cellOfData in line:
@@ -88,21 +111,23 @@ def makeBridges(data):
                     bridge.append((float(cellOfData)))
                 except:
                     print("File read went wrong during bridges, couldn't convert data to float")
-            bridges.append(bridge.copy())
+            bridgeMatrix.append(bridge.copy())
+        bridges.append(bridgeMatrix.copy())
     return bridges
 
 def makeLastBridge(data):
     bridge = []
-    for cube in data:
-        for matrix in cube:
-            for line in matrix:
-                bridgeMatrix = []
-                for cellOfData in line:
-                    try:
-                        bridgeMatrix.append((float(cellOfData)))
-                    except:
-                        print("File read went wrong during lastBridge, couldn't convert data to float")
-                bridge.append(bridgeMatrix.copy())
+    for matrix in data:
+        bridgeMatrix = []
+        for line in matrix:
+            bridgeLine = []
+            for cellOfData in line:
+                try:
+                    bridgeLine.append((float(cellOfData)))
+                except:
+                    print("File read went wrong during lastBridge, couldn't convert data to float")
+            bridgeMatrix.append(bridgeLine.copy())
+        bridge.append(bridgeMatrix.copy())
     return bridge
 
 def saveAI(AI):
@@ -186,16 +211,3 @@ def writeFile(map):
             file.write(object) 
         file.write("\n")   
     file.close()
-
-
-# ai = loadAI("selfAI7")
-# for layer in ai.layers:
-#     for node in layer:
-#         print(str(node.bias), end=" ")
-#     print("Nodes")
-
-# print("bridges")
-# print(len(ai.bridges))
-# for matrix in ai.bridges:
-#     print("matrix")
-#     print(matrix)

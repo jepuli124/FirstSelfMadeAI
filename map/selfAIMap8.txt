@@ -1,7 +1,0 @@
-e  sbb 
- b   b 
-bbb    
-b   bbb
- bbb b 
- bb b b
-  b  b 

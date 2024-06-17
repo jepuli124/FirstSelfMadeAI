@@ -38,22 +38,25 @@ def mainLoop():
                     case "1":
                         AIrandom.run(mapSize)
                     case "2":
-                        # userInput = input("Do you want to use saved AI? ")
-                        # if "y" in userInput.lower():
-                        #     selfAIRunner.run(mapSize)
-                        # else:
-                        userInput = input("Do you want to configure the new AI? ")
-                        AISize = (10, 5)
+                        userInput = input("Do you want to use saved AI? ")
                         if "y" in userInput.lower():
-                            userInput = input("How many nodes per layer and how many layers? ")
-                            AISize = numberParser(userInput)
-                        newAI = selfAIRunner.run(mapSize, AISize[0], AISize[1])
+                            listOfAIs = os.listdir("selfAI/")
+                            print("\nAvailable AIs: ")
+                            for AIFromList in listOfAIs:
+                                print(AIFromList)
+                            selectedAI = input("Which AI (without '.txt')? ")
+                            selfAIRunner.run(mapSize, savedAI = selectedAI)
+                        else:
+                            userInput = input("Do you want to configure the new AI? ")
+                            AISize = (10, 5)
+                            if "y" in userInput.lower():
+                                userInput = input("How many nodes per layer and how many layers? ")
+                                AISize = numberParser(userInput)
+                            newAI = selfAIRunner.run(mapSize, AISize[0], AISize[1])
 
-                        userInput = input("Do you want to save the new AI? ")
-                        if "y" in userInput.lower():
-                            selfAIRunner.saveAI(newAI)
-
-                        
+                            userInput = input("Do you want to save the new AI? ")
+                            if "y" in userInput.lower():
+                                selfAIRunner.saveAI(newAI)
                     case "3":
                         AITorch.run(mapSize)
 
@@ -63,7 +66,7 @@ def mainLoop():
                 for map in listOfMaps:
                     print(map)
 
-                userInput = input("Which map? ")
+                userInput = input("Which map (without '.txt')? ")
                 game.start()
                 game.gameLoop(userInput)
                 game.end()

@@ -14,10 +14,10 @@ class selfAI():
             layer = []
             bridge = []
             for y in range(layerSize):
-                layer.append(node(random.random()))
+                layer.append(node(random.random()/2))
                 bridgeLine = []
                 for x in range(layerSize): # bridge to each other node in the next tier
-                    bridgeLine.append(random.random())
+                    bridgeLine.append(random.random()*2)
                 bridge.append(bridgeLine.copy())
             self.layers.append(layer.copy())
             self.bridges.append(bridge)
@@ -72,7 +72,7 @@ class selfAI():
                 counter += 1
             sum /= counter
             if sum >= x.bias:
-                x.output = 1
+                x.output = sum - x.bias
 
     def calculateInputToTier(self, previousTier, nextTier):
         for x in nextTier:
@@ -98,3 +98,5 @@ class selfAI():
                 sum /= counter
                 output[yOutput][xOutput] = sum
 
+    def learn():
+        pass
