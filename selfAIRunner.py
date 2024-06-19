@@ -1,32 +1,38 @@
 from selfAI import *
 from node import * 
 
-def run(mapSize:tuple, AILayerSize:int = None, AIlayerAmount:int = None, savedAI:str = None, AI:selfAI = None, repeats:int = 0) -> selfAI:
+def run(mapSize:tuple,  savedAI:str = None, AI:selfAI = None, repeats:int = 0) -> None:
     
     if AI == None:
         if savedAI != None:
             AI = loadAI(savedAI)
         else:
-            AI = selfAI()
-            AI.makeNewRandomNetwork(AILayerSize, AIlayerAmount)
+            AI = makeAI()
+            
     newMap = AI.produceMap(mapSize)
-    if newMap == None: return None
+    
+    if newMap == None:
+        return None
+
     mapAsText = outputToObjects(newMap)
+
     if mapAsText != None:
         writeFile(mapAsText)
     else:
         print("map failed, retrying")
         if repeats > 10:
             if savedAI == None:
-                run(mapSize, AILayerSize, AIlayerAmount, savedAI=savedAI, repeats= repeats + 1) 
+                run(mapSize, savedAI=savedAI, repeats= repeats+1) 
             return None
         if repeats > 100:
             return None
-        run(mapSize, AILayerSize, AIlayerAmount, AI = AI, savedAI=savedAI, repeats= repeats+1)
-    if savedAI == None:
-        return AI
+        run(mapSize, AI = AI, savedAI=savedAI, repeats= repeats+1)
     return None
     
+def makeAI(AILayerSize:int = 10, AIlayerAmount:int = 5):
+    AI = selfAI()
+    AI.makeNewRandomNetwork(AILayerSize, AIlayerAmount)
+    return AI
 
 def loadAI(savedAI:str) -> selfAI:
     loadedAI = selfAI()
@@ -130,15 +136,23 @@ def makeLastBridge(data:list) -> list:
         bridge.append(bridgeMatrix.copy())
     return bridge
 
-def saveAI(AI: selfAI):
+def saveAI(AI: selfAI, fixedName: str = None):
     fileNameCounter = 0
-    run = True
-    while run:
+    file = None
+    if fixedName == None:
+        run = True
+        while run:
+            try:
+                file = open("selfAI/selfAI"+ str(fileNameCounter) +".txt", "xt")
+                run = False
+            except:
+                fileNameCounter += 1
+    else:
         try:
-            file = open("selfAI/selfAI"+ str(fileNameCounter) +".txt", "xt")
-            run = False
+            file = open("selfAI/"+ fixedName +".txt", "wt")
         except:
-            fileNameCounter += 1
+            print("Couldn't open file")
+            return None
 
     file.write("Layers: \n")
     layerCounter = 0
@@ -171,7 +185,7 @@ def saveAI(AI: selfAI):
 
     file.close() 
 
-def outputToObjects(map: list) -> list:
+def outputToObjects(map: list, forceProduce:bool = False) -> list:
     outputMap = [] 
     twoRandomValues = [0, (0, 0), (0, 0)] 
     for lineNumber, line in enumerate(map):
@@ -191,7 +205,7 @@ def outputToObjects(map: list) -> list:
                 twoRandomValues[2] = twoRandomValues[1]
                 twoRandomValues[1] = (xNumber, lineNumber)
                 twoRandomValues[0] = x
-    if twoRandomValues[0] < 0.21:
+    if twoRandomValues[0] < 0.21 and not forceProduce:
         return None
     outputMap[twoRandomValues[1][1]][twoRandomValues[1][0]] = "s"
     outputMap[twoRandomValues[2][1]][twoRandomValues[2][0]] = "e"
@@ -211,3 +225,139 @@ def writeFile(map: list):
             file.write(object) 
         file.write("\n")   
     file.close()
+
+def trainAI(laps: int, savedAI: str):
+
+    try: loadAI(savedAI)
+    except: 
+        print("No valid AI given")
+        return
+
+    for times in range(laps):
+        AIList = []
+        mapList = []
+        rewardList = []
+        bestAI = 0
+        for loopAmount in range(100):
+            AIList.append(loadAI(savedAI))
+            AIList[-1].mutate()
+            mapList.append(outputToObjects(AIList[-1].produceMap((AIList[-1].networkLayerSize -1, AIList[-1].networkLayerSize -1)), True))
+            rewardList.append(calculateReward(mapList[-1]))
+            if rewardList[-1] > bestAI:
+                bestAI = loopAmount
+
+        writeFile(mapList[bestAI])
+        saveAI(AIList[bestAI], savedAI)
+
+def calculateReward(map:list) -> float: #the legend tells that there is a deeply nested if-tree span across a hundred lines. It is mimicing a hot oven, locals say.
+    reward = 0
+    blockCounter = 0
+    SpikeCounter = 0
+    mapSize = (len(map)* len(map[0]))
+
+
+    for ylocation, y in enumerate(map):
+        for xlocation, x in enumerate(y):
+            if x == "b":
+                blockCounter += 1
+                if ylocation != 0:
+                    if map[ylocation - 1][xlocation] != " ": 
+                        reward -= 0.2 
+                    if ylocation != 1:
+                        if map[ylocation - 2][xlocation] != " ": 
+                            reward -= 0.1 
+                if xlocation != len(map[0])-1:
+                    if map[ylocation][xlocation+1] == "b": 
+                        reward += 0.1 
+                if xlocation != 0:
+                    if map[ylocation][xlocation-1] == "b": 
+                        reward += 0.1 
+
+            if x == "t":
+                SpikeCounter += 1
+                if ylocation != 0:
+                    if map[ylocation - 1][xlocation] != " ": 
+                        reward -= 0.6 
+                    if ylocation != 1:
+                        if map[ylocation - 2][xlocation] != " ": 
+                            reward -= 0.2
+                if ylocation != len(map)-1:
+                    if map[ylocation + 1][xlocation] != " ": 
+                        reward -= 0.6 
+                
+                if xlocation != len(map[0])-1:
+                    if map[ylocation][xlocation+1] == "t": 
+                        reward += 0.1 
+                if xlocation != 0:
+                    if map[ylocation][xlocation-1] == "t": 
+                        reward += 0.1 
+
+            if x == " ":
+                if ylocation != 0:
+                    if map[ylocation - 1][xlocation] == " ": 
+                        reward += 0.2 
+
+            if x == "e":
+                if ylocation != len(map)-1:
+                    if map[ylocation + 1][xlocation] == "b": 
+                        reward += 1.2 
+                    if xlocation != len(map[0])-1:
+                        if map[ylocation + 1][xlocation+1] == "b": 
+                            reward += 0.8 
+                    if xlocation != 0:
+                        if map[ylocation + 1][xlocation-1] == "b": 
+                            reward += 0.8 
+                else:
+                    reward -= 2
+                if ylocation != 0:
+                    if map[ylocation - 1][xlocation] == " ": 
+                        reward += 0.4
+                    if xlocation != len(map[0])-1:
+                        if map[ylocation - 1][xlocation + 1] == " ": 
+                            reward += 0.4
+                    if xlocation != 0:
+                        if map[ylocation - 1][xlocation - 1] == " ": 
+                            reward += 0.4
+
+                reward += -2 + (xlocation*0.2)
+
+            if x == "s":
+                if ylocation != len(map)-1:
+                    if map[ylocation + 1][xlocation] == "b": 
+                        reward += 1.2 
+                    if xlocation != len(map[0])-1:
+                        if map[ylocation + 1][xlocation+1] == "b": 
+                            reward += 0.8 
+                    if xlocation != 0:
+                        if map[ylocation + 1][xlocation-1] == "b": 
+                            reward += 0.8
+                else:
+                    reward -= 2 
+                if ylocation != 0:
+                    if map[ylocation - 1][xlocation] == " ": 
+                        reward += 0.4
+                    if xlocation != len(map[0])-1:
+                        if map[ylocation - 1][xlocation - 1] == " ": 
+                            reward += 0.4
+                    if xlocation != 0:
+                        if map[ylocation - 1][xlocation + 1] == " ": 
+                            reward += 0.4
+
+                if ylocation == 0 or xlocation == 0:
+                    reward -= 0.2
+                else:
+                    reward += 2 - (xlocation*0.1)
+
+    if blockCounter > mapSize/3:
+        reward += (-blockCounter + (mapSize)/3) * 0.1
+    else:
+        reward += (blockCounter - (mapSize)/3) * 0.1
+    
+    if SpikeCounter > mapSize/5:
+        reward += (-SpikeCounter + (mapSize)/5) * 0.1
+    else:
+        reward += (SpikeCounter - (mapSize)/5) * 0.1
+
+    
+
+    return reward

@@ -8,8 +8,9 @@ class selfAI():
         self.bridges = []   
         self.output = []
         self.networkLayerSize = 0
+        self.learnRate = 0.10
 
-    def makeNewRandomNetwork(self, layerSize, layerAmount):
+    def makeNewRandomNetwork(self, layerSize: list, layerAmount: list):
         for _ in range(layerAmount):
             layer = []
             bridge = []
@@ -37,7 +38,7 @@ class selfAI():
         self.networkLayerSize = layerSize
             
 
-    def produceMap(self, mapSize):
+    def produceMap(self, mapSize: tuple) -> list:
         if mapSize[0] > self.networkLayerSize or mapSize[1] > self.networkLayerSize:
             print("Too small network\nNetwork size:", str(self.networkLayerSize), "\nAsked map size:", mapSize, "\nMap's size should be at maxium the networks size")
             return None
@@ -54,7 +55,7 @@ class selfAI():
 
         return self.output
     
-    def runNetwork(self, map, mapSize):
+    def runNetwork(self, map: list, mapSize: tuple):
         self.input = map   
         self.calculateInputToTier(self.input, self.layers[0])
         for layer in range(len(self.layers)-1):
@@ -62,7 +63,7 @@ class selfAI():
         self.calculateLastTierToOutput(self.layers[-1], self.output, self.bridges[-1], mapSize)
 
 
-    def calculateNextTier(self, previousTier, nextTier, layerBridge):
+    def calculateNextTier(self, previousTier: list, nextTier: list, layerBridge: list):
         for xLocation, x in enumerate(nextTier):
             x.output = 0
             sum = 0
@@ -74,7 +75,7 @@ class selfAI():
             if sum >= x.bias:
                 x.output = sum - x.bias
 
-    def calculateInputToTier(self, previousTier, nextTier):
+    def calculateInputToTier(self, previousTier: list, nextTier: list):
         for x in nextTier:
             x.output = 0
             sum = 0
@@ -87,7 +88,7 @@ class selfAI():
             if sum >= x.bias:
                 x.output = 1
 
-    def calculateLastTierToOutput(self, previousTier, output, layerBridge, mapSize):
+    def calculateLastTierToOutput(self, previousTier: list, output: list, layerBridge: list, mapSize: tuple):
         for yOutput in range(mapSize[1]):
             for xOutput in range(mapSize[0]):
                 sum = 0
@@ -98,5 +99,23 @@ class selfAI():
                 sum /= counter
                 output[yOutput][xOutput] = sum
 
-    def learn():
-        pass
+    def mutate(self):
+        layersLength = len(self.layers)-1
+        layerLength = len(self.layers[0])-1
+        bridgesLength = len(self.bridges)-2 # 2: because last bridge is a special tensor
+        bridgeLength = len(self.bridges[0])-1
+        
+        self.layers[random.randint(0, layersLength)][random.randint(0, layerLength)].bias += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
+        self.layers[random.randint(0, layersLength)][random.randint(0, layerLength)].bias += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
+        self.layers[random.randint(0, layersLength)][random.randint(0, layerLength)].bias += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
+
+        try:
+            self.bridges[random.randint(0, bridgesLength)][random.randint(0, bridgeLength)][random.randint(0, bridgeLength)] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
+            self.bridges[random.randint(0, bridgesLength)][random.randint(0, bridgeLength)][random.randint(0, bridgeLength)] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
+            self.bridges[random.randint(0, bridgesLength)][random.randint(0, bridgeLength)][random.randint(0, bridgeLength)] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
+        except:
+            print(layersLength, layerLength, bridgesLength, bridgeLength)
+
+        self.bridges[-1][random.randint(0, bridgeLength)][random.randint(0, bridgeLength)][random.randint(0, bridgeLength)] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
+        self.bridges[-1][random.randint(0, bridgeLength)][random.randint(0, bridgeLength)][random.randint(0, bridgeLength)] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
+        self.bridges[-1][random.randint(0, bridgeLength)][random.randint(0, bridgeLength)][random.randint(0, bridgeLength)] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
