@@ -5,7 +5,7 @@ import mapTile as mT
 import map as m
 from image import * 
 
-# the only global variable
+# the global variables
 windowSize = (1280, 720)
 window = None
 
@@ -24,18 +24,8 @@ def start():
     window.blit(starttext, ((windowSize[0]/2)-300, (windowSize[1]/2)-75))
     pygame.display.flip()
 
-# A1 = pygame.image.load("pict/Bg.png") example code
-# window.blit(A1, (0, 0))
 
-# Loading images
-#
-
-
-
-
-
-
-def mapDecoder(mapName):
+def mapDecoder(mapName:str) -> m.map:
     try:
         with open("map/"+mapName+".txt") as mapfile:
             map = mapfile.readlines()
@@ -71,7 +61,7 @@ def mapDecoder(mapName):
         return False
 
 
-def newFrame(map, entitiesList):
+def newFrame(map, entitiesList: list):
     pygame.draw.rect(window, (0,0,20), [0, 0, windowSize[0], windowSize[1]])
     for x in map.objects:
        for tile in x:
@@ -95,12 +85,12 @@ def newFrame(map, entitiesList):
 #     y = 128*(tileY)-player.y+windowSize[1]/2
 #     return x, y
 
-def relativeLocationOfToPlayer(player, entity):
+def relativeLocationOfToPlayer(player, entity: e.entity) -> tuple:
     x = (entity.x)-player.getCenter()[0]+windowSize[0]/2
     y = (entity.y)-player.getCenter()[1]+windowSize[1]/2
     return x, y
 
-def playerActions(pressedKeys, player):
+def playerActions(pressedKeys: list, player: e.entity):
     if pressedKeys[pygame.K_w] or pressedKeys[pygame.K_UP] or pressedKeys[pygame.K_SPACE]:
         player.jump(1)
     if pressedKeys[pygame.K_a] or pressedKeys[pygame.K_LEFT]:
@@ -111,7 +101,7 @@ def playerActions(pressedKeys, player):
         player.addMomentum(1)
 
 
-def upkeep(map, entitiesList): # collection of misc. actions to keep game going 
+def upkeep(map: list, entitiesList: list) -> tuple: # collection of misc. actions to keep game going 
     if entitiesList[0].x == None:
         startX, startY =  tileLocation("start", map) 
         if startX != None:
@@ -121,12 +111,12 @@ def upkeep(map, entitiesList): # collection of misc. actions to keep game going
     collisionHandler(map, entitiesList)
     return map, entitiesList
 
-def moveEntities(entitiesList):
+def moveEntities(entitiesList: list):
     for entity in entitiesList:
         if entity.x != None:
             entity.move()
 
-def tileLocation(name, map):
+def tileLocation(name: str, map: list) -> tuple:
     for x in map.objects:
         for y in x:
             if y == None:
@@ -136,7 +126,7 @@ def tileLocation(name, map):
                 
     return None
 
-def collisionHandler(map, entitiesList):
+def collisionHandler(map: list, entitiesList: list):
     for entity1 in range(len(entitiesList)):
         for entity2 in range(entity1 + 1, len(entitiesList)):
             collisionChecker(entitiesList[entity1], entitiesList[entity2])
@@ -170,7 +160,7 @@ def collisionHandler(map, entitiesList):
 
 
 
-def collisionChecker(object1, object2):
+def collisionChecker(object1: e.entity, object2: e.entity) -> tuple:
     object1CornerPoints = [(object1.x, object1.y), (object1.x+object1.size, object1.y), (object1.x, object1.y+object1.size), (object1.x+object1.size, object1.y+object1.size)] 
     for pointNumber, point in enumerate(object1CornerPoints):
         if (point[0] <= object2.x + object2.size and point[0] >= object2.x) and (point[1] <= object2.y + object2.size and point[1] >= object2.y):
@@ -202,7 +192,7 @@ def collisionChecker(object1, object2):
     return False, ""
     
 
-def endGame(pressedKeys):
+def endGame(pressedKeys: list) -> bool:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             return True
@@ -211,7 +201,7 @@ def endGame(pressedKeys):
         
             
 
-def gameLoop(fileName):
+def gameLoop(fileName: str):
     run = True
     clock = pygame.time.Clock()
     FPS = 30

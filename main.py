@@ -1,11 +1,10 @@
 import AIrandom, selfAIRunner, AITorch
-import enviroment
 import game
 import os
 
 
 
-def numberParser(mapSize):
+def numberParser(mapSize: str) -> list:
     listOfNumbers = []
     state = 0
     for character in mapSize:

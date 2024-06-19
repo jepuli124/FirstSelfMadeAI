@@ -1,7 +1,7 @@
 import random
 
 
-def run(size):
+def run(size: tuple):
     map = []
     for y in range(size[1]):
         map.append([" "] * size[0])
@@ -10,7 +10,7 @@ def run(size):
     writeFile(map)
 
 
-def generateMap(map):
+def generateMap(map: list) -> list:
     for yLocation, y in enumerate(map):
         for xLocation, x in enumerate(map):
             match random.randint(0, 3):
@@ -23,7 +23,7 @@ def generateMap(map):
     map[random.randint(0, len(map)-1)][random.randint(0, len(map[0])-1)] = "s" #start point
     return map
             
-def writeFile(map):
+def writeFile(map: list):
     fileNameCounter = 0
     run = True
     while run:

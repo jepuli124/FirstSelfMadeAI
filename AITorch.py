@@ -1,3 +1,3 @@
 
-def run(mapSize):
+def run(mapSize: tuple):
     pass

@@ -1,7 +1,7 @@
 from image import *
 
 class entity():
-    def __init__(self, x = None, y = None, name = "unknown", size = 128, xMomentum = 0, yMomentum = 0, speed = 10, jumpForce = 5, gravitation = 2, isPlayer = False, image = BALL):
+    def __init__(self, x:int = None, y:int = None, name:str = "unknown", size:int = 128, xMomentum:int = 0, yMomentum:int = 0, speed:int = 10, jumpForce:int = 5, gravitation:int = 2, isPlayer:bool = False, image = BALL):
         self.x = x
         self.y = y
         self.name = name
@@ -14,22 +14,22 @@ class entity():
         self.isPlayer = isPlayer
         self.image = image
             
-    def getLocation(self):
+    def getLocation(self) -> tuple:
         return (self.x, self.y)
     
-    def getCenter(self): # returns the location of center pixel of the model
+    def getCenter(self) -> tuple: # returns the location of center pixel of the model
         return self.x + self.size/2, self.y - self.size/2
     
-    def setLocation(self, x, y):
+    def setLocation(self, x:int, y:int):
         self.x = x
         self.y = y
 
     
 
-    def jump(self, direction):
+    def jump(self, direction:int):
         self.yMomentum += self.jumpForce * direction
 
-    def addMomentum(self, direction):
+    def addMomentum(self, direction:int):
         self.xMomentum += direction * self.speed 
     
     def move(self):
@@ -39,9 +39,8 @@ class entity():
 
 
     def slowdown(self): # slowsdown movement speed to make the game feel dynamic
-        self.xMomentum = self.xMomentum * 0.7
-        self.yMomentum = self.yMomentum * 0.7
-
+        self.xMomentum = self.xMomentum * 0.85
+        self.yMomentum = self.yMomentum * 0.85
         if abs(self.xMomentum) < 0.01:
             self.xMomentum = 0
         if abs(self.yMomentum) < 0.01:

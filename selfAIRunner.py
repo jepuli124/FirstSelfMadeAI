@@ -1,7 +1,7 @@
 from selfAI import *
 from node import * 
 
-def run(mapSize, AILayerSize = None, AIlayerAmount = None, savedAI = None, AI = None, repeats = 0):
+def run(mapSize:tuple, AILayerSize:int = None, AIlayerAmount:int = None, savedAI:str = None, AI:selfAI = None, repeats:int = 0) -> selfAI:
     
     if AI == None:
         if savedAI != None:
@@ -28,7 +28,7 @@ def run(mapSize, AILayerSize = None, AIlayerAmount = None, savedAI = None, AI = 
     return None
     
 
-def loadAI(savedAI):
+def loadAI(savedAI:str) -> selfAI:
     loadedAI = selfAI()
     layerData = []
     bridgesData = []
@@ -87,7 +87,7 @@ def loadAI(savedAI):
     return loadedAI
 
 
-def makeLayers(data):
+def makeLayers(data: list) -> list:
     layers = []
     for line in data:
         layer = []
@@ -100,7 +100,7 @@ def makeLayers(data):
     return layers
 
 
-def makeBridges(data):
+def makeBridges(data: list) -> list:
     bridges = []
     for matrix in data:
         bridgeMatrix = []
@@ -115,7 +115,7 @@ def makeBridges(data):
         bridges.append(bridgeMatrix.copy())
     return bridges
 
-def makeLastBridge(data):
+def makeLastBridge(data:list) -> list:
     bridge = []
     for matrix in data:
         bridgeMatrix = []
@@ -130,7 +130,7 @@ def makeLastBridge(data):
         bridge.append(bridgeMatrix.copy())
     return bridge
 
-def saveAI(AI):
+def saveAI(AI: selfAI):
     fileNameCounter = 0
     run = True
     while run:
@@ -171,7 +171,7 @@ def saveAI(AI):
 
     file.close() 
 
-def outputToObjects(map):
+def outputToObjects(map: list) -> list:
     outputMap = [] 
     twoRandomValues = [0, (0, 0), (0, 0)] 
     for lineNumber, line in enumerate(map):
@@ -197,7 +197,7 @@ def outputToObjects(map):
     outputMap[twoRandomValues[2][1]][twoRandomValues[2][0]] = "e"
     return outputMap
         
-def writeFile(map):
+def writeFile(map: list):
     fileNameCounter = 0
     run = True
     while run:
