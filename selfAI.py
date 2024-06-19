@@ -110,12 +110,49 @@ class selfAI():
         self.layers[random.randint(0, layersLength)][random.randint(0, layerLength)].bias += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
 
         try:
-            self.bridges[random.randint(0, bridgesLength)][random.randint(0, bridgeLength)][random.randint(0, bridgeLength)] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
-            self.bridges[random.randint(0, bridgesLength)][random.randint(0, bridgeLength)][random.randint(0, bridgeLength)] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
-            self.bridges[random.randint(0, bridgesLength)][random.randint(0, bridgeLength)][random.randint(0, bridgeLength)] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
-        except:
-            print(layersLength, layerLength, bridgesLength, bridgeLength)
+            randomizisedBridge1 = random.randint(0, bridgesLength)
+            randomizisedBridge2 = random.randint(0, bridgeLength)
+            randomizisedBridge3 = random.randint(0, bridgeLength)
+            self.bridges[randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
+        except IndexError:
+            print("Bridge" ,randomizisedBridge1, randomizisedBridge2, randomizisedBridge3)
 
-        self.bridges[-1][random.randint(0, bridgeLength)][random.randint(0, bridgeLength)][random.randint(0, bridgeLength)] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
-        self.bridges[-1][random.randint(0, bridgeLength)][random.randint(0, bridgeLength)][random.randint(0, bridgeLength)] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
-        self.bridges[-1][random.randint(0, bridgeLength)][random.randint(0, bridgeLength)][random.randint(0, bridgeLength)] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
+        try:
+            randomizisedBridge1 = random.randint(0, bridgesLength)
+            randomizisedBridge2 = random.randint(0, bridgeLength)
+            randomizisedBridge3 = random.randint(0, bridgeLength)
+            self.bridges[randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
+        except IndexError:
+            print("Bridge" ,randomizisedBridge1, randomizisedBridge2, randomizisedBridge3)
+
+        try:
+            randomizisedBridge1 = random.randint(0, bridgesLength)
+            randomizisedBridge2 = random.randint(0, bridgeLength)
+            randomizisedBridge3 = random.randint(0, bridgeLength)
+            self.bridges[randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
+        except IndexError:
+            print("Bridge" ,randomizisedBridge1, randomizisedBridge2, randomizisedBridge3)
+
+        try:
+            randomizisedBridge1 = random.randint(0, bridgeLength)
+            randomizisedBridge2 = random.randint(0, bridgeLength)
+            randomizisedBridge3 = random.randint(0, bridgeLength)
+            self.bridges[-1][randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
+        except IndexError:
+            print("Last Bridge" ,randomizisedBridge1, randomizisedBridge2, randomizisedBridge3)
+
+        try:
+            randomizisedBridge1 = random.randint(0, bridgeLength)
+            randomizisedBridge2 = random.randint(0, bridgeLength)
+            randomizisedBridge3 = random.randint(0, bridgeLength)
+            self.bridges[-1][randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
+        except IndexError:
+            print("Last Bridge" ,randomizisedBridge1, randomizisedBridge2, randomizisedBridge3)
+
+        try:
+            randomizisedBridge1 = random.randint(0, bridgeLength)
+            randomizisedBridge2 = random.randint(0, bridgeLength)
+            randomizisedBridge3 = random.randint(0, bridgeLength)
+            self.bridges[-1][randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
+        except IndexError:
+            print("Last Bridge" ,randomizisedBridge1, randomizisedBridge2, randomizisedBridge3)

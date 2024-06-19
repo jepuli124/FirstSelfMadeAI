@@ -336,10 +336,10 @@ def calculateReward(map:list) -> float: #the legend tells that there is a deeply
                 if ylocation != 0:
                     if map[ylocation - 1][xlocation] == " ": 
                         reward += 0.4
-                    if xlocation != len(map[0])-1:
+                    if xlocation != 0:
                         if map[ylocation - 1][xlocation - 1] == " ": 
                             reward += 0.4
-                    if xlocation != 0:
+                    if xlocation != len(map[0])-1:
                         if map[ylocation - 1][xlocation + 1] == " ": 
                             reward += 0.4
 
