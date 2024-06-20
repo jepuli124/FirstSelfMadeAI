@@ -10,7 +10,36 @@ class selfAI():
         self.networkLayerSize = 0
         self.learnRate = 0.10
 
-    def makeNewRandomNetwork(self, layerSize: list, layerAmount: list):
+    def copy(self): # returns selfAI type object but python hasn't declared it yet, I guess?
+        copiedAI = selfAI()
+
+        for z in range(len(self.layers)):
+            layer = []
+            bridge = []
+            for y in range(self.networkLayerSize):
+                layer.append(self.layers[z][y].copy())
+                bridge.append(self.bridges[z][y].copy())
+            copiedAI.layers.append(layer.copy())
+            copiedAI.bridges.append(bridge.copy())
+
+
+        cube = [] # making last bridge as 3d tensor
+        for z in range(self.networkLayerSize):
+            side = []
+            for y in range(self.networkLayerSize): 
+                line = []
+                for x in range(self.networkLayerSize): 
+                    line.append(self.bridges[-1][z][x][y])
+                side.append(line.copy()) 
+            cube.append(side.copy())
+        copiedAI.bridges[-1] = cube.copy()
+
+        copiedAI.networkLayerSize = self.networkLayerSize
+        
+        return copiedAI
+
+
+    def makeNewRandomNetwork(self, layerSize: int, layerAmount: int):
         for _ in range(layerAmount):
             layer = []
             bridge = []
@@ -38,22 +67,30 @@ class selfAI():
         self.networkLayerSize = layerSize
             
 
-    def produceMap(self, mapSize: tuple) -> list:
+    def produceMap(self, mapSize: tuple, map: list = None) -> list:
         if mapSize[0] > self.networkLayerSize or mapSize[1] > self.networkLayerSize:
             print("Too small network\nNetwork size:", str(self.networkLayerSize), "\nAsked map size:", mapSize, "\nMap's size should be at maxium the networks size")
             return None
         
-        map = [] #making base for the map. Randomizing start makes output to be unique 
+        if map == None:
+            map = self.mapStartingPosition(mapSize)
+
+        self.output = []
+        for line in map: # this is to make deep copy of the map
+            self.output.append(line.copy())
+
+        self.runNetwork(map, mapSize)
+
+        return self.output
+    
+    def mapStartingPosition(self, mapSize: tuple) -> list: #making base for the map. Randomizing start makes output to be unique 
+        map = []
         for y in range(mapSize[1]):
             line = []
             for x in range(mapSize[0]):
                 line.append(random.random())
             map.append(line.copy())
-
-        self.output = map.copy()
-        self.runNetwork(map, mapSize)
-
-        return self.output
+        return map
     
     def runNetwork(self, map: list, mapSize: tuple):
         self.input = map   
@@ -100,6 +137,7 @@ class selfAI():
                 output[yOutput][xOutput] = sum
 
     def mutate(self):
+
         layersLength = len(self.layers)-1
         layerLength = len(self.layers[0])-1
         bridgesLength = len(self.bridges)-2 # 2: because last bridge is a special tensor
@@ -109,50 +147,37 @@ class selfAI():
         self.layers[random.randint(0, layersLength)][random.randint(0, layerLength)].bias += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
         self.layers[random.randint(0, layersLength)][random.randint(0, layerLength)].bias += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
 
-        try:
-            randomizisedBridge1 = random.randint(0, bridgesLength)
-            randomizisedBridge2 = random.randint(0, bridgeLength)
-            randomizisedBridge3 = random.randint(0, bridgeLength)
-            self.bridges[randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
-        except IndexError:
-            print("Bridge" ,randomizisedBridge1, randomizisedBridge2, randomizisedBridge3)
 
-        try:
-            randomizisedBridge1 = random.randint(0, bridgesLength)
-            randomizisedBridge2 = random.randint(0, bridgeLength)
-            randomizisedBridge3 = random.randint(0, bridgeLength)
-            self.bridges[randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
-        except IndexError:
-            print("Bridge" ,randomizisedBridge1, randomizisedBridge2, randomizisedBridge3)
+        randomizisedBridge1 = random.randint(0, bridgesLength)
+        randomizisedBridge2 = random.randint(0, bridgeLength)
+        randomizisedBridge3 = random.randint(0, bridgeLength)
+        self.bridges[randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
 
-        try:
-            randomizisedBridge1 = random.randint(0, bridgesLength)
-            randomizisedBridge2 = random.randint(0, bridgeLength)
-            randomizisedBridge3 = random.randint(0, bridgeLength)
-            self.bridges[randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
-        except IndexError:
-            print("Bridge" ,randomizisedBridge1, randomizisedBridge2, randomizisedBridge3)
+        randomizisedBridge1 = random.randint(0, bridgesLength)
+        randomizisedBridge2 = random.randint(0, bridgeLength)
+        randomizisedBridge3 = random.randint(0, bridgeLength)
+        self.bridges[randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
 
-        try:
-            randomizisedBridge1 = random.randint(0, bridgeLength)
-            randomizisedBridge2 = random.randint(0, bridgeLength)
-            randomizisedBridge3 = random.randint(0, bridgeLength)
-            self.bridges[-1][randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
-        except IndexError:
-            print("Last Bridge" ,randomizisedBridge1, randomizisedBridge2, randomizisedBridge3)
+        randomizisedBridge1 = random.randint(0, bridgesLength)
+        randomizisedBridge2 = random.randint(0, bridgeLength)
+        randomizisedBridge3 = random.randint(0, bridgeLength)
+        self.bridges[randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
 
-        try:
-            randomizisedBridge1 = random.randint(0, bridgeLength)
-            randomizisedBridge2 = random.randint(0, bridgeLength)
-            randomizisedBridge3 = random.randint(0, bridgeLength)
-            self.bridges[-1][randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
-        except IndexError:
-            print("Last Bridge" ,randomizisedBridge1, randomizisedBridge2, randomizisedBridge3)
+        randomizisedBridge1 = random.randint(0, bridgeLength)
+        randomizisedBridge2 = random.randint(0, bridgeLength)
+        randomizisedBridge3 = random.randint(0, bridgeLength)
+        self.bridges[-1][randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
 
-        try:
-            randomizisedBridge1 = random.randint(0, bridgeLength)
-            randomizisedBridge2 = random.randint(0, bridgeLength)
-            randomizisedBridge3 = random.randint(0, bridgeLength)
-            self.bridges[-1][randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
-        except IndexError:
-            print("Last Bridge" ,randomizisedBridge1, randomizisedBridge2, randomizisedBridge3)
+        randomizisedBridge1 = random.randint(0, bridgeLength)
+        randomizisedBridge2 = random.randint(0, bridgeLength)
+        randomizisedBridge3 = random.randint(0, bridgeLength)
+        self.bridges[-1][randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
+
+        randomizisedBridge1 = random.randint(0, bridgeLength)
+        randomizisedBridge2 = random.randint(0, bridgeLength)
+        randomizisedBridge3 = random.randint(0, bridgeLength)
+        self.bridges[-1][randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
+
+
+
+

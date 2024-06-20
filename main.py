@@ -78,9 +78,12 @@ def mainLoop():
                 selectedAI = input("Which AI (without '.txt')? ")
                 userInput = input("How much would you like to train this AI? ")
                 laps = numberParser(userInput)
+                print("Starting training\n")
                 selfAIRunner.trainAI(laps[0], selectedAI)
 
             case "5":
                 main = False  
 
 mainLoop()
+
+print("Kiitos ohjelman käytöstä")

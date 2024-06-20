@@ -48,7 +48,8 @@ def loadAI(savedAI:str) -> selfAI:
             
             for line in data:
                 try:
-                    int(line[0])
+                    if line[0] != "-":
+                        int(line[0])
                     splitedData = line.split(" ")
                     splitedData.pop()  # removes \n line marker
                     match state:
@@ -227,8 +228,8 @@ def writeFile(map: list):
     file.close()
 
 def trainAI(laps: int, savedAI: str):
-
-    try: loadAI(savedAI)
+    
+    try: currentAI = loadAI(savedAI)
     except: 
         print("No valid AI given")
         return
@@ -238,16 +239,30 @@ def trainAI(laps: int, savedAI: str):
         mapList = []
         rewardList = []
         bestAI = 0
+        baseMap = currentAI.mapStartingPosition((currentAI.networkLayerSize, currentAI.networkLayerSize ))    
+
         for loopAmount in range(100):
-            AIList.append(loadAI(savedAI))
+            AIList.append(currentAI.copy())
             AIList[-1].mutate()
-            mapList.append(outputToObjects(AIList[-1].produceMap((AIList[-1].networkLayerSize -1, AIList[-1].networkLayerSize -1)), True))
+            
+            mapList.append(outputToObjects(AIList[-1].produceMap((AIList[-1].networkLayerSize -1, AIList[-1].networkLayerSize -1), baseMap), True))
             rewardList.append(calculateReward(mapList[-1]))
             if rewardList[-1] > bestAI:
                 bestAI = loopAmount
+            currentAI = AIList[bestAI].copy()
 
-        writeFile(mapList[bestAI])
-        saveAI(AIList[bestAI], savedAI)
+        if times+1 % 50 == 0: writeFile(mapList[bestAI])
+        progressBar(times, laps)
+
+    saveAI(AIList[bestAI], savedAI)
+
+def progressBar(laps:int, totalLaps:int):
+    if laps != totalLaps-1:
+        print("Made", laps+1, "out of", totalLaps, end="\r")
+    else:
+        print("Made", laps+1, "out of", totalLaps)
+        print("done")
+
 
 def calculateReward(map:list) -> float: #the legend tells that there is a deeply nested if-tree span across a hundred lines. It is mimicing a hot oven, locals say.
     reward = 0
