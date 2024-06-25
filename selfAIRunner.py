@@ -1,5 +1,6 @@
 from selfAI import *
 from node import * 
+from multiprocessing import Pool
 
 def run(mapSize:tuple,  savedAI:str = None, AI:selfAI = None, repeats:int = 0) -> None:
     
@@ -237,27 +238,36 @@ def trainAI(laps: int, savedAI: str):
         print("No valid AI given")
         return
 
+    bestAI = 0 #declared here so develution would be less likely
     for times in range(laps):
         AIList = []
         mapList = []
         rewardList = []
-        bestAI = 0
         baseMap = currentAI.mapStartingPosition((currentAI.networkLayerSize, currentAI.networkLayerSize ))    
+        numberOfBestAI = -1
 
-        for loopAmount in range(100):
-            AIList.append(currentAI.copy())
-            AIList[-1].mutate()
-            
-            mapList.append(outputToObjects(AIList[-1].produceMap((AIList[-1].networkLayerSize -1, AIList[-1].networkLayerSize -1), baseMap), True))
-            rewardList.append(calculateReward(mapList[-1]))
-            if rewardList[-1] > bestAI:
-                bestAI = loopAmount
-            currentAI = AIList[bestAI].copy()
+        # for _ in range(100): 
+        #     AIList.append(currentAI.copy())
+        
+        with Pool(10) as pool: # seperated from below for the possibility of multiprocessing
+            AIList = pool.map(currentAI.copy, range(100))
 
-        if (times+1) % 50 == 0: writeFile(mapList[bestAI], True, savedAI)
+        for number, AI in enumerate(AIList):
+            AI.mutate()
+            producedMap = outputToObjects(AI.produceMap((AI.networkLayerSize -1, AI.networkLayerSize -1), baseMap), True)
+            reward = calculateReward(producedMap)
+            rewardList.append(reward)
+            mapList.append(producedMap)
+
+            if reward > bestAI:
+                bestAI = reward
+                numberOfBestAI = number
+        if numberOfBestAI != -1:
+            currentAI = AIList[numberOfBestAI].copy()
+        if (times+1) % 50 == 0: writeFile(mapList[numberOfBestAI], True, savedAI)
         progressBar(times, laps)
 
-    saveAI(AIList[bestAI], savedAI)
+    saveAI(AIList[numberOfBestAI], savedAI)
 
 def progressBar(laps:int, totalLaps:int):
     if laps != totalLaps-1:
@@ -267,7 +277,7 @@ def progressBar(laps:int, totalLaps:int):
         print("done")
 
 
-def calculateReward(map:list) -> float: #the legend tells that there is a deeply nested if-tree span across a hundred lines. It is mimicing a hot oven, locals say.
+def calculateReward(map:list) -> float: #the legend tells that there is a deeply nested if-tree span across a hundred lines. It is mimicing the project "hot oven", locals say.
     reward = 0
     blockCounter = 0
     SpikeCounter = 0

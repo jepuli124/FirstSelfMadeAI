@@ -10,7 +10,7 @@ class selfAI():
         self.networkLayerSize = 0
         self.learnRate = 0.10
 
-    def copy(self): # returns selfAI type object but python hasn't declared it yet, I guess?
+    def copy(self, *_): # returns selfAI type object but python hasn't declared it yet, I guess?
         copiedAI = selfAI()
 
         for z in range(len(self.layers)):
