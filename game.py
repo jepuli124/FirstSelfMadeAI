@@ -209,7 +209,7 @@ def gameLoop(fileName: str):
     if map == False:
         return
     entitiesList = []
-    entitiesList.append(e.entity(x = None, y = None, speed = 5, jumpForce = 5, isPlayer = True))
+    entitiesList.append(e.entity(x = None, y = None, speed = 10, jumpForce = 10, isPlayer = True))
     while run:
         
         pressedKeys = pygame.key.get_pressed()

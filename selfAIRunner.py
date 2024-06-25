@@ -212,12 +212,15 @@ def outputToObjects(map: list, forceProduce:bool = False) -> list:
     outputMap[twoRandomValues[2][1]][twoRandomValues[2][0]] = "e"
     return outputMap
         
-def writeFile(map: list):
+def writeFile(map: list, log = False, name = ""):
     fileNameCounter = 0
     run = True
     while run:
         try:
-            file = open("map/selfAIMap"+ str(fileNameCounter) +".txt", "xt")
+            if log:
+                file = open("map/"+name+"/selfAIMap"+ str(fileNameCounter) +".txt", "xt")
+            else:
+                file = open("map/selfAIMap"+ str(fileNameCounter) +".txt", "xt")
             run = False
         except:
             fileNameCounter += 1
@@ -251,16 +254,16 @@ def trainAI(laps: int, savedAI: str):
                 bestAI = loopAmount
             currentAI = AIList[bestAI].copy()
 
-        if times+1 % 50 == 0: writeFile(mapList[bestAI])
+        if (times+1) % 50 == 0: writeFile(mapList[bestAI], True, savedAI)
         progressBar(times, laps)
 
     saveAI(AIList[bestAI], savedAI)
 
 def progressBar(laps:int, totalLaps:int):
     if laps != totalLaps-1:
-        print("Made", laps+1, "out of", totalLaps, end="\r")
+        print("Trained", laps+1, "out of", totalLaps, end="\r")
     else:
-        print("Made", laps+1, "out of", totalLaps)
+        print("Trained", laps+1, "out of", totalLaps)
         print("done")
 
 
@@ -278,9 +281,14 @@ def calculateReward(map:list) -> float: #the legend tells that there is a deeply
                 if ylocation != 0:
                     if map[ylocation - 1][xlocation] != " ": 
                         reward -= 0.2 
-                    if ylocation != 1:
-                        if map[ylocation - 2][xlocation] != " ": 
-                            reward -= 0.1 
+                if ylocation <= 1:
+                    if map[ylocation - 2][xlocation] != " ": 
+                        reward -= 0.1 
+                if ylocation <= 2:
+                    if map[ylocation - 3][xlocation] == " ": 
+                        reward -= 0.1 
+                    if map[ylocation - 3][xlocation] == "b": 
+                        reward += 0.1 
                 if xlocation != len(map[0])-1:
                     if map[ylocation][xlocation+1] == "b": 
                         reward += 0.1 
@@ -307,11 +315,6 @@ def calculateReward(map:list) -> float: #the legend tells that there is a deeply
                     if map[ylocation][xlocation-1] == "t": 
                         reward += 0.1 
 
-            if x == " ":
-                if ylocation != 0:
-                    if map[ylocation - 1][xlocation] == " ": 
-                        reward += 0.2 
-
             if x == "e":
                 if ylocation != len(map)-1:
                     if map[ylocation + 1][xlocation] == "b": 
@@ -334,7 +337,7 @@ def calculateReward(map:list) -> float: #the legend tells that there is a deeply
                         if map[ylocation - 1][xlocation - 1] == " ": 
                             reward += 0.4
 
-                reward += -2 + (xlocation*0.2)
+                reward += -2 + (xlocation*0.3)
 
             if x == "s":
                 if ylocation != len(map)-1:
@@ -358,20 +361,22 @@ def calculateReward(map:list) -> float: #the legend tells that there is a deeply
                         if map[ylocation - 1][xlocation + 1] == " ": 
                             reward += 0.4
 
-                if ylocation == 0 or xlocation == 0:
-                    reward -= 0.2
+                if ylocation == 0 or ylocation == len(map)-1:
+                    reward -= 1.2
+                elif xlocation == 0: 
+                    reward += 0.3
                 else:
-                    reward += 2 - (xlocation*0.1)
+                    reward += 2 - (xlocation*0.3)
 
-    if blockCounter > mapSize/3:
-        reward += (-blockCounter + (mapSize)/3) * 0.1
+    if blockCounter > mapSize/4:
+        reward += (-blockCounter + (mapSize)/4) * 0.6
     else:
-        reward += (blockCounter - (mapSize)/3) * 0.1
+        reward += (blockCounter) * 0.6
     
     if SpikeCounter > mapSize/5:
-        reward += (-SpikeCounter + (mapSize)/5) * 0.1
+        reward += (-SpikeCounter + (mapSize)/5) * 0.6
     else:
-        reward += (SpikeCounter - (mapSize)/5) * 0.1
+        reward += (SpikeCounter) * 0.6
 
     
 

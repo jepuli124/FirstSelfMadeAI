@@ -33,14 +33,14 @@ class entity():
         self.xMomentum += direction * self.speed 
     
     def move(self):
-        #self.yMomentum -= self.gravitation
+        self.yMomentum -= self.gravitation
         self.setLocation(self.x + self.xMomentum, self.y - (self.yMomentum))
         self.slowdown()
 
 
     def slowdown(self): # slowsdown movement speed to make the game feel dynamic
-        self.xMomentum = self.xMomentum * 0.85
-        self.yMomentum = self.yMomentum * 0.85
+        self.xMomentum = self.xMomentum * 0.8
+        self.yMomentum = self.yMomentum * 0.8
         if abs(self.xMomentum) < 0.01:
             self.xMomentum = 0
         if abs(self.yMomentum) < 0.01:
