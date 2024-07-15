@@ -1,6 +1,7 @@
 from selfAI import *
 from node import * 
 from multiprocessing import Pool
+import rewardV1
 
 def run(mapSize:tuple,  savedAI:str = None, AI:selfAI = None, repeats:int = 0) -> None:
     
@@ -233,29 +234,37 @@ def writeFile(map: list, log = False, name = ""):
 
 def trainAI(laps: int, savedAI: str):
     
-    try: currentAI = loadAI(savedAI)
+    try: 
+        currentAI = loadAI(savedAI)
+        train = True
     except: 
         print("No valid AI given")
+        train = False
+    if not train:
         return
-
-    bestAI = 0 #declared here so develution would be less likely
+    
+    AIList = [] #expanding scope
+    
     for times in range(laps):
         AIList = []
         mapList = []
         rewardList = []
         baseMap = currentAI.mapStartingPosition((currentAI.networkLayerSize, currentAI.networkLayerSize ))    
         numberOfBestAI = -1
+        bestAI = -100 
 
-        # for _ in range(100): 
-        #     AIList.append(currentAI.copy())
+        for _ in range(100): 
+            AIList.append(currentAI.copy())
         
-        with Pool(10) as pool: # seperated from below for the possibility of multiprocessing
-            AIList = pool.map(currentAI.copy, range(100))
+        # seperated from below for the possibility of multiprocessing, currently slower than nottreadhing
+        # with Pool(100) as pool:
+        #     AIList = pool.map(currentAI.copy, range(100))
+        #     AIList = pool.map(mutater, AIList)
 
         for number, AI in enumerate(AIList):
             AI.mutate()
             producedMap = outputToObjects(AI.produceMap((AI.networkLayerSize -1, AI.networkLayerSize -1), baseMap), True)
-            reward = calculateReward(producedMap)
+            reward = rewardV1.calculateReward(producedMap)
             rewardList.append(reward)
             mapList.append(producedMap)
 
@@ -267,7 +276,11 @@ def trainAI(laps: int, savedAI: str):
         if (times+1) % 50 == 0: writeFile(mapList[numberOfBestAI], True, savedAI)
         progressBar(times, laps)
 
-    saveAI(AIList[numberOfBestAI], savedAI)
+    saveAI(currentAI, savedAI)
+
+def mutater(AI: selfAI) -> selfAI:
+    AI.mutate()
+    return AI
 
 def progressBar(laps:int, totalLaps:int):
     if laps != totalLaps-1:
@@ -277,117 +290,3 @@ def progressBar(laps:int, totalLaps:int):
         print("done")
 
 
-def calculateReward(map:list) -> float: #the legend tells that there is a deeply nested if-tree span across a hundred lines. It is mimicing the project "hot oven", locals say.
-    reward = 0
-    blockCounter = 0
-    SpikeCounter = 0
-    mapSize = (len(map)* len(map[0]))
-
-
-    for ylocation, y in enumerate(map):
-        for xlocation, x in enumerate(y):
-            if x == "b":
-                blockCounter += 1
-                if ylocation != 0:
-                    if map[ylocation - 1][xlocation] != " ": 
-                        reward -= 0.2 
-                if ylocation <= 1:
-                    if map[ylocation - 2][xlocation] != " ": 
-                        reward -= 0.1 
-                if ylocation <= 2:
-                    if map[ylocation - 3][xlocation] == " ": 
-                        reward -= 0.1 
-                    if map[ylocation - 3][xlocation] == "b": 
-                        reward += 0.1 
-                if xlocation != len(map[0])-1:
-                    if map[ylocation][xlocation+1] == "b": 
-                        reward += 0.1 
-                if xlocation != 0:
-                    if map[ylocation][xlocation-1] == "b": 
-                        reward += 0.1 
-
-            if x == "t":
-                SpikeCounter += 1
-                if ylocation != 0:
-                    if map[ylocation - 1][xlocation] != " ": 
-                        reward -= 0.6 
-                    if ylocation != 1:
-                        if map[ylocation - 2][xlocation] != " ": 
-                            reward -= 0.2
-                if ylocation != len(map)-1:
-                    if map[ylocation + 1][xlocation] != " ": 
-                        reward -= 0.6 
-                
-                if xlocation != len(map[0])-1:
-                    if map[ylocation][xlocation+1] == "t": 
-                        reward += 0.1 
-                if xlocation != 0:
-                    if map[ylocation][xlocation-1] == "t": 
-                        reward += 0.1 
-
-            if x == "e":
-                if ylocation != len(map)-1:
-                    if map[ylocation + 1][xlocation] == "b": 
-                        reward += 1.2 
-                    if xlocation != len(map[0])-1:
-                        if map[ylocation + 1][xlocation+1] == "b": 
-                            reward += 0.8 
-                    if xlocation != 0:
-                        if map[ylocation + 1][xlocation-1] == "b": 
-                            reward += 0.8 
-                else:
-                    reward -= 2
-                if ylocation != 0:
-                    if map[ylocation - 1][xlocation] == " ": 
-                        reward += 0.4
-                    if xlocation != len(map[0])-1:
-                        if map[ylocation - 1][xlocation + 1] == " ": 
-                            reward += 0.4
-                    if xlocation != 0:
-                        if map[ylocation - 1][xlocation - 1] == " ": 
-                            reward += 0.4
-
-                reward += -2 + (xlocation*0.3)
-
-            if x == "s":
-                if ylocation != len(map)-1:
-                    if map[ylocation + 1][xlocation] == "b": 
-                        reward += 1.2 
-                    if xlocation != len(map[0])-1:
-                        if map[ylocation + 1][xlocation+1] == "b": 
-                            reward += 0.8 
-                    if xlocation != 0:
-                        if map[ylocation + 1][xlocation-1] == "b": 
-                            reward += 0.8
-                else:
-                    reward -= 2 
-                if ylocation != 0:
-                    if map[ylocation - 1][xlocation] == " ": 
-                        reward += 0.4
-                    if xlocation != 0:
-                        if map[ylocation - 1][xlocation - 1] == " ": 
-                            reward += 0.4
-                    if xlocation != len(map[0])-1:
-                        if map[ylocation - 1][xlocation + 1] == " ": 
-                            reward += 0.4
-
-                if ylocation == 0 or ylocation == len(map)-1:
-                    reward -= 1.2
-                elif xlocation == 0: 
-                    reward += 0.3
-                else:
-                    reward += 2 - (xlocation*0.3)
-
-    if blockCounter > mapSize/4:
-        reward += (-blockCounter + (mapSize)/4) * 0.6
-    else:
-        reward += (blockCounter) * 0.6
-    
-    if SpikeCounter > mapSize/5:
-        reward += (-SpikeCounter + (mapSize)/5) * 0.6
-    else:
-        reward += (SpikeCounter) * 0.6
-
-    
-
-    return reward

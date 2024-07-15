@@ -1,4 +1,4 @@
-import AIrandom, selfAIRunner, AITorch
+import AIrandom, selfAIRunner
 import game
 import os
 
@@ -17,7 +17,7 @@ def numberParser(mapSize: str) -> list:
         except:
             if state % 2 == 1:
                 state += 1
-            pass
+
     return listOfNumbers
 
 def mainLoop():
@@ -46,7 +46,8 @@ def mainLoop():
 
                             
                     case "3":
-                        AITorch.run(mapSize)
+                        pass
+                        #AITorch.run(mapSize)
 
             case "2":
                 listOfMaps = os.listdir("map/")

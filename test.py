@@ -22,7 +22,13 @@ from multiprocessing import Pool
 #just a file where to experiments are run...
 
 def f(y):
-    return(y)
+    print("hey")
+    return("hey", y)
+def g(y):
+    print("howw")
+    return("hey", y)
 
-with Pool(100) as pool:
-    print(pool.map(f, ("hey",range(100))))
+
+with Pool(10) as pool:
+    pool.map(f, range(100))
+    pool.map(g, range(100))
