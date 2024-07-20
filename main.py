@@ -1,4 +1,4 @@
-import AIrandom, selfAIRunner
+import AIrandom, selfAIRunner, mapSolverRunner
 import game
 import os
 
@@ -61,13 +61,24 @@ def mainLoop():
                 game.gameLoop(userInput)
                 game.end()
             case "3":
-                userInput = input("Do you want to configure the new AI? ")
-                AISize = (10, 5)
-                if "y" in userInput.lower():
-                    userInput = input("How many nodes per layer and how many layers? ")
-                    AISize = numberParser(userInput)
-                newAI = selfAIRunner.makeAI(AISize[0], AISize[1])
-                selfAIRunner.saveAI(newAI)
+                userInput = input("Which type of AI? 1) MapMaker v1 (selfAI), 2) MapSolverAI ")
+                match userInput:
+                    case "1":
+                        userInput = input("Do you want to configure the new AI? ")
+                        AISize = (10, 5)
+                        if "y" in userInput.lower():
+                            userInput = input("How many nodes per layer and how many layers? ")
+                            AISize = numberParser(userInput)
+                        newAI = selfAIRunner.makeAI(AISize[0], AISize[1])
+                        selfAIRunner.saveAI(newAI)
+                    case "2":
+                        userInput = input("Do you want to configure the new AI? ")
+                        AISize = (10, 2)
+                        if "y" in userInput.lower():
+                            userInput = input("How many nodes per layer and how many layers? ")
+                            AISize = numberParser(userInput)
+                        newAI = mapSolverRunner.makeAI(AISize[0], AISize[1])
+                        mapSolverRunner.saveAI(newAI)
 
             case "4":
                 listOfAIs = os.listdir("selfAI/")
