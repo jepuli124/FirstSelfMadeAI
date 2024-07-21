@@ -1,43 +1,20 @@
-from mapSolverAI import *
+from improvedAI import *
 from node import * 
 import random, os
 
-def mapDecoder(mapName:str) -> list:
-    try:
-        with open("map/"+mapName+".txt") as mapfile:
-            map = mapfile.readlines()
-            length = 0
-            hight = 0
-            returnableMap = []
-            for line in map:
-                hight += 1
-                if len(line) > length:
-                    length = len(line)
 
-            for line in range(length):
-                xAxis = [None] * hight
-                returnableMap.append(xAxis.copy())
-
-            for ynumber, y in enumerate(map):
-                for xnumber, x in enumerate(y):
-                    returnableMap[xnumber][ynumber] = x
-        print(returnableMap)
-        return returnableMap
-    except:
-        print("map not found")
-        return False
 
 def run(AI):
-    print(AI.solveMap(mapDecoder("test"), 50))
+    
     pass
 
-def makeAI(layerSize: int = 10, layerAmount: int = 2) -> mapSolverAI:
-    AI = mapSolverAI()
+def makeAI(layerSize: int = 10, layerAmount: int = 2) -> improvedAI:
+    AI = improvedAI()
     AI.makeNewRandomNetwork(layerSize, layerAmount)
     return AI
 
-def loadAI(savedAI:str) -> mapSolverAI:
-    loadedAI = mapSolverAI()
+def loadAI(savedAI:str) -> improvedAI:
+    loadedAI = improvedAI()
     layersData = []
     layerData = []
     bridgesData = []
@@ -153,20 +130,20 @@ def makeBridges(data: list) -> list:
         bridges.append(bridgeTesseract.copy())
     return bridges
 
-def saveAI(AI: mapSolverAI, fixedName: str = None):
+def saveAI(AI: improvedAI, fixedName: str = None):
     fileNameCounter = 0
     file = None
     if fixedName == None:
         run = True
         while run:
             try:
-                file = open("mapSolverAI/mapSolverAI"+ str(fileNameCounter) +".txt", "xt")
+                file = open("improvedAI/improvedAI"+ str(fileNameCounter) +".txt", "xt")
                 run = False
             except:
                 fileNameCounter += 1
     else:
         try:
-            file = open("mapSolverAI/"+ fixedName +".txt", "wt")
+            file = open("improvedAI/"+ fixedName +".txt", "wt")
         except:
             print("Couldn't open file")
             return None
@@ -215,12 +192,13 @@ def trainAI(laps: int, savedAI: str):
         return
     
     AIList = [] #expanding scope
-    mapList = getMaps()
+    
     
     for times in range(laps):
         AIList = []
         rewardList = []
-        baseMap = random.choice(mapList) 
+        mapList = []
+        baseMap = 
         numberOfBestAI = -1
         maxSteps = 200
         bestAI = maxSteps + 1 
@@ -248,24 +226,3 @@ def progressBar(laps:int, totalLaps:int):
     else:
         print("Trained", laps+1, "out of", totalLaps)
         print("done")
-
-
-def getMaps() -> list:
-    listOfMaps = []
-    nameOfMaps = os.listdir("mapSolverTrainMaps/")
-    for name in nameOfMaps:
-        try:
-            with open("mapSolverTrainMaps/"+name) as mapfile:
-                map = mapfile.readlines()
-                processedMap = []
-                for y in map:
-                    lineOfMap = []
-                    for x in y:
-                        lineOfMap.append(x)
-                    processedMap.append(lineOfMap.copy())
-                listOfMaps.append(nameOfMaps)
-        except:
-            print("map not found")
-
-    return listOfMaps
-

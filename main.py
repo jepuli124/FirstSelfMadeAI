@@ -81,17 +81,25 @@ def mainLoop():
                         mapSolverRunner.saveAI(newAI)
 
             case "4":
-                listOfAIs = os.listdir("selfAI/")
+                userInput = input("Which type of AI? 1) MapMaker v1 (selfAI), 2) MapSolverAI ")
+                match userInput:
+                    case "1":
+                        listOfAIs = os.listdir("selfAI/")
+                    case "2":
+                        listOfAIs = os.listdir("mapSolverAI/")
                 print("\nAvailable AIs: ")
                 listOfAIs.sort()
                 for AIFromList in listOfAIs:
-                    if AIFromList[0].lower() == "s":
-                        print(AIFromList)
+                    print(AIFromList)
                 selectedAI = input("Which AI (without '.txt')? ")
-                userInput = input("How much would you like to train this AI? ")
-                laps = numberParser(userInput)
+                lapsStr = input("How much would you like to train this AI? ")
+                laps = numberParser(lapsStr)
                 print("Starting training\n")
-                selfAIRunner.trainAI(laps[0], selectedAI)
+                match userInput:
+                    case "1":
+                        selfAIRunner.trainAI(laps[0], selectedAI)
+                    case "2":
+                        mapSolverRunner.trainAI(laps[0], selectedAI)
 
             case "5":
                 main = False  
