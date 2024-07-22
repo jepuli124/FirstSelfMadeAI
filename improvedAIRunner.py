@@ -1,12 +1,37 @@
 from improvedAI import *
 from node import * 
-import random, os
+import rewardV1, os
 
 
 
-def run(AI):
+
+def run(mapSize:tuple,  savedAI:str = None, AI:improvedAI = None, repeats:int = 0) -> None:
     
-    pass
+    if AI == None:
+        if savedAI != None:
+            AI = loadAI(savedAI)
+        else:
+            AI = makeAI()
+            
+    newMap = AI.produceMap(mapSize)
+    
+    if newMap == None:
+        return None
+
+    mapAsText = outputToObjects(newMap)
+
+    if mapAsText != None:
+        writeFile(mapAsText)
+    else:
+        print("map failed, retrying")
+        if repeats > 10:
+            if savedAI == None:
+                run(mapSize, savedAI=savedAI, repeats= repeats+1) 
+            return None
+        if repeats > 100:
+            return None
+        run(mapSize, AI = AI, savedAI=savedAI, repeats= repeats+1)
+    return None
 
 def makeAI(layerSize: int = 10, layerAmount: int = 2) -> improvedAI:
     AI = improvedAI()
@@ -21,9 +46,9 @@ def loadAI(savedAI:str) -> improvedAI:
     bridgeData = []
     bridgecubeData = []
     bridgematrixData = []
-
+    noAI = False
     try:
-        with open("mapSolverAI/"+savedAI+".txt") as AIFile:
+        with open("improvedAI/"+savedAI+".txt") as AIFile:
             data = AIFile.readlines()
             state = 0
             datacheck = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-']
@@ -85,7 +110,8 @@ def loadAI(savedAI:str) -> improvedAI:
 
     except FileNotFoundError:
         print("No saved AI")
-        return None
+        noAI = True
+    if noAI: return 
 
     loadedAI.layers = makeLayers(layersData)
     loadedAI.bridges = makeBridges(bridgesData)
@@ -133,6 +159,10 @@ def makeBridges(data: list) -> list:
 def saveAI(AI: improvedAI, fixedName: str = None):
     fileNameCounter = 0
     file = None
+    try:
+        os.mkdir("improvedAI")
+    except FileExistsError:
+        pass
     if fixedName == None:
         run = True
         while run:
@@ -180,7 +210,7 @@ def saveAI(AI: improvedAI, fixedName: str = None):
 
     file.close() 
 
-def trainAI(laps: int, savedAI: str):
+def trainAI(laps: int, savedAI: str, mapDiff: int = 1):
     
     try: 
         currentAI = loadAI(savedAI)
@@ -196,26 +226,28 @@ def trainAI(laps: int, savedAI: str):
     
     for times in range(laps):
         AIList = []
-        rewardList = []
         mapList = []
-        baseMap = 
+        rewardList = []
+        baseMap = currentAI.mapStartingPosition((currentAI.networkLayerSize, currentAI.networkLayerSize ))    
         numberOfBestAI = -1
-        maxSteps = 200
-        bestAI = maxSteps + 1 
+        bestAI = -100 
 
         for _ in range(100): 
             AIList.append(currentAI.copy())
 
         for number, AI in enumerate(AIList):
             AI.mutate()
-            steps = AI.solveMap(baseMap, maxSteps)
-            rewardList.append(steps/maxSteps)
+            producedMap = outputToObjects(AI.produceMap((AI.networkLayerSize -1, AI.networkLayerSize -1), baseMap), True)
+            reward = rewardV1.calculateReward(producedMap)
+            rewardList.append(reward)
+            mapList.append(producedMap)
 
-            if steps < bestAI:
-                bestAI = steps
+            if reward > bestAI:
+                bestAI = reward
                 numberOfBestAI = number
         if numberOfBestAI != -1:
             currentAI = AIList[numberOfBestAI].copy()
+        if (times+1) % 50 == 0: writeFile(mapList[numberOfBestAI], True, savedAI)
         progressBar(times, laps)
 
     saveAI(currentAI, savedAI)
@@ -226,3 +258,55 @@ def progressBar(laps:int, totalLaps:int):
     else:
         print("Trained", laps+1, "out of", totalLaps)
         print("done")
+
+def writeFile(map: list, log = False, name = ""):
+    fileNameCounter = 0
+    run = True
+    try:
+        if log:
+            os.mkdir("map/"+name)
+        else:
+            os.mkdir("map")
+    except FileExistsError:
+        pass
+
+    while run:
+        try:
+            if log:
+                file = open("map/"+name+"/improvedAIMap"+ str(fileNameCounter) +".txt", "xt")
+            else:
+                file = open("map/improvedAIMap"+ str(fileNameCounter) +".txt", "xt")
+            run = False
+        except:
+            fileNameCounter += 1
+    for line in map:
+        for object in line:
+            file.write(object) 
+        file.write("\n")   
+    file.close()
+
+def outputToObjects(map: list, forceProduce:bool = False) -> list:
+    outputMap = [] 
+    twoRandomValues = [0, (0, 0), (0, 0)] 
+    for lineNumber, line in enumerate(map):
+        outputMap.append([])
+        for xNumber, x in enumerate(line):
+            if x < 0.2:
+                outputMap[lineNumber].append(" ")
+            elif x < 0.4:
+                outputMap[lineNumber].append("b")
+            elif x < 0.6:
+                outputMap[lineNumber].append("b")
+            elif x < 0.8:
+                outputMap[lineNumber].append("t")
+            else:
+                outputMap[lineNumber].append("t")
+            if x > twoRandomValues[0]:
+                twoRandomValues[2] = twoRandomValues[1]
+                twoRandomValues[1] = (xNumber, lineNumber)
+                twoRandomValues[0] = x
+    if twoRandomValues[0] < 0.21 and not forceProduce:
+        return None
+    outputMap[twoRandomValues[1][1]][twoRandomValues[1][0]] = "s"
+    outputMap[twoRandomValues[2][1]][twoRandomValues[2][0]] = "e"
+    return outputMap

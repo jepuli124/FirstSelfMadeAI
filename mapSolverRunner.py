@@ -156,6 +156,10 @@ def makeBridges(data: list) -> list:
 def saveAI(AI: mapSolverAI, fixedName: str = None):
     fileNameCounter = 0
     file = None
+    try:
+        os.mkdir("mapSolverAI")
+    except FileExistsError:
+        pass
     if fixedName == None:
         run = True
         while run:
@@ -215,10 +219,12 @@ def trainAI(laps: int, savedAI: str):
         return
     
     AIList = [] #expanding scope
+    
     mapList = getMaps()
     
     for times in range(laps):
         AIList = []
+        bestAIs = []
         rewardList = []
         baseMap = random.choice(mapList) 
         numberOfBestAI = -1
@@ -236,8 +242,12 @@ def trainAI(laps: int, savedAI: str):
             if steps < bestAI:
                 bestAI = steps
                 numberOfBestAI = number
+                bestAIs = [number]
+            elif steps == bestAI:
+                bestAIs.append[number]
         if numberOfBestAI != -1:
             currentAI = AIList[numberOfBestAI].copy()
+        if (times+1) % 25 == 0: writeFile(steps, True, savedAI)
         progressBar(times, laps)
 
     saveAI(currentAI, savedAI)
@@ -269,3 +279,26 @@ def getMaps() -> list:
 
     return listOfMaps
 
+def writeFile(steps: int, log = False, name = ""):
+    fileNameCounter = 0
+    run = True
+    try:
+        if log:
+            os.mkdir("map/"+name)
+        else:
+            os.mkdir("map")
+    except FileExistsError:
+        pass
+
+    while run:
+        try:
+            if log:
+                file = open("map/"+name+"/improvedAIMap"+ str(fileNameCounter) +".txt", "at")
+            else:
+                file = open("map/improvedAIMap"+ str(fileNameCounter) +".txt", "at")
+            run = False
+        except:
+            fileNameCounter += 1
+        file.write(str(steps)) 
+        file.write("\n")   
+    file.close()

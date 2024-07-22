@@ -1,7 +1,7 @@
 from selfAI import *
 from node import * 
 from multiprocessing import Pool
-import rewardV1
+import rewardV1, os
 
 def run(mapSize:tuple,  savedAI:str = None, AI:selfAI = None, repeats:int = 0) -> None:
     
@@ -142,6 +142,10 @@ def makeLastBridge(data:list) -> list:
 def saveAI(AI: selfAI, fixedName: str = None):
     fileNameCounter = 0
     file = None
+    try:
+        os.mkdir("selfAI")
+    except FileExistsError:
+        pass
     if fixedName == None:
         run = True
         while run:
@@ -217,6 +221,14 @@ def outputToObjects(map: list, forceProduce:bool = False) -> list:
 def writeFile(map: list, log = False, name = ""):
     fileNameCounter = 0
     run = True
+    try:
+        if log:
+            os.mkdir("map/"+name)
+        else:
+            os.mkdir("map")
+    except FileExistsError:
+        pass
+
     while run:
         try:
             if log:

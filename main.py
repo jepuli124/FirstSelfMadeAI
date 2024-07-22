@@ -1,4 +1,4 @@
-import AIrandom, selfAIRunner, mapSolverRunner
+import AIrandom, selfAIRunner, mapSolverRunner, improvedAIRunner
 import game
 import os
 
@@ -54,17 +54,18 @@ def mainLoop():
                 print("\nAvailable maps: ")
                 listOfMaps.sort()
                 for map in listOfMaps:
-                    print(map)
+                    if "txt" in map:
+                        print(map)
 
                 userInput = input("Which map (without '.txt')? ")
                 game.start()
                 game.gameLoop(userInput)
                 game.end()
             case "3":
-                userInput = input("Which type of AI? 1) MapMaker v1 (selfAI), 2) MapSolverAI ")
+                userInput = input("Which type of AI? 1) MapMaker v1 (selfAI), 2) MapSolverAI, 3) improved map AI ")
                 match userInput:
                     case "1":
-                        userInput = input("Do you want to configure the new AI? ")
+                        userInput = input("Do you want to configure the new AI? (default 10x10 layer, 5 layers)")
                         AISize = (10, 5)
                         if "y" in userInput.lower():
                             userInput = input("How many nodes per layer and how many layers? ")
@@ -72,25 +73,36 @@ def mainLoop():
                         newAI = selfAIRunner.makeAI(AISize[0], AISize[1])
                         selfAIRunner.saveAI(newAI)
                     case "2":
-                        userInput = input("Do you want to configure the new AI? ")
+                        userInput = input("Do you want to configure the new AI? (default 10x10 layer, 2 layers)")
                         AISize = (10, 2)
                         if "y" in userInput.lower():
                             userInput = input("How many nodes per layer and how many layers? ")
                             AISize = numberParser(userInput)
                         newAI = mapSolverRunner.makeAI(AISize[0], AISize[1])
                         mapSolverRunner.saveAI(newAI)
+                    case "3":
+                        userInput = input("Do you want to configure the new AI? (default 10x10 layer, 2 layers)")
+                        AISize = (10, 2)
+                        if "y" in userInput.lower():
+                            userInput = input("How many nodes per layer and how many layers? ")
+                            AISize = numberParser(userInput)
+                        newAI = improvedAIRunner.makeAI(AISize[0], AISize[1])
+                        improvedAIRunner.saveAI(newAI)
 
             case "4":
-                userInput = input("Which type of AI? 1) MapMaker v1 (selfAI), 2) MapSolverAI ")
+                userInput = input("Which type of AI? 1) MapMaker v1 (selfAI), 2) MapSolverAI, 3) improved map AI ")
                 match userInput:
                     case "1":
                         listOfAIs = os.listdir("selfAI/")
                     case "2":
                         listOfAIs = os.listdir("mapSolverAI/")
+                    case "3":
+                        listOfAIs = os.listdir("improvedAI/")
                 print("\nAvailable AIs: ")
                 listOfAIs.sort()
                 for AIFromList in listOfAIs:
-                    print(AIFromList)
+                    if "txt" in AIFromList:
+                        print(AIFromList)
                 selectedAI = input("Which AI (without '.txt')? ")
                 lapsStr = input("How much would you like to train this AI? ")
                 laps = numberParser(lapsStr)
@@ -100,7 +112,8 @@ def mainLoop():
                         selfAIRunner.trainAI(laps[0], selectedAI)
                     case "2":
                         mapSolverRunner.trainAI(laps[0], selectedAI)
-
+                    case "3":
+                        improvedAIRunner.trainAI(laps[0], selectedAI)
             case "5":
                 main = False  
 

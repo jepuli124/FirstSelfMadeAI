@@ -85,8 +85,8 @@ class improvedAI():
         return map
     
     def runNetwork(self, map: list, mapSize: tuple):   
-        self.calculateInputToTier(self.input, map, self.layers[0])
-        for layer in range(len(self.layers)):
+        self.calculateInputToTier(map, self.layers[0])
+        for layer in range(len(self.layers)-1):
             self.calculateNextTier(self.layers[layer], self.layers[layer + 1], self.bridges[layer])
         self.calculateOutput(mapSize)
 
@@ -106,7 +106,7 @@ class improvedAI():
                     xNext.output = sum - xNext.bias
 
     def calculateInputToTier(self, previousTier: list, nextTier: list):
-        previousTier.append([self.input])
+        previousTier.append(self.input)
         for yNext in nextTier:
             for xNext in yNext:
                 xNext.output = 0
@@ -125,7 +125,7 @@ class improvedAI():
         for y in range(mapSize[0]):
             line = []
             for x in range(mapSize[1]):
-                line.append(self.layers[-1][y][x])
+                line.append(self.layers[-1][y][x].bias)
             self.output.append(line)
 
 
