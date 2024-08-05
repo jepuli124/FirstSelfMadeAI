@@ -1,18 +1,18 @@
 from improvedAI import *
 from node import * 
-import rewardV1, os
+import rewardV1, rewardV2, os
 
 
 
 
-def run(mapSize:tuple,  savedAI:str = None, AI:improvedAI = None, repeats:int = 0) -> None:
+def run(mapSize:tuple,  savedAI:str = None, AI:improvedAI = None, repeats:int = 0, mode: int = 1) -> None:
     
     if AI == None:
         if savedAI != None:
             AI = loadAI(savedAI)
         else:
             AI = makeAI()
-            
+    AI.input = [mode]
     newMap = AI.produceMap(mapSize)
     
     if newMap == None:
@@ -26,11 +26,11 @@ def run(mapSize:tuple,  savedAI:str = None, AI:improvedAI = None, repeats:int = 
         print("map failed, retrying")
         if repeats > 10:
             if savedAI == None:
-                run(mapSize, savedAI=savedAI, repeats= repeats+1) 
+                run(mapSize, savedAI=savedAI, repeats= repeats+1, mode=mode) 
             return None
         if repeats > 100:
             return None
-        run(mapSize, AI = AI, savedAI=savedAI, repeats= repeats+1)
+        run(mapSize, AI = AI, savedAI=savedAI, repeats= repeats+1, mode=mode)
     return None
 
 def makeAI(layerSize: int = 10, layerAmount: int = 2) -> improvedAI:
@@ -210,7 +210,7 @@ def saveAI(AI: improvedAI, fixedName: str = None):
 
     file.close() 
 
-def trainAI(laps: int, savedAI: str, mapDiff: int = 1):
+def trainAI(laps: int, savedAI: str, mode: int = 1):
     
     try: 
         currentAI = loadAI(savedAI)
@@ -228,6 +228,7 @@ def trainAI(laps: int, savedAI: str, mapDiff: int = 1):
         AIList = []
         mapList = []
         rewardList = []
+        difficulty = 1 if mode == 1 else random.randint(1, 3)
         baseMap = currentAI.mapStartingPosition((currentAI.networkLayerSize, currentAI.networkLayerSize ))    
         numberOfBestAI = -1
         bestAI = -100 
@@ -237,8 +238,12 @@ def trainAI(laps: int, savedAI: str, mapDiff: int = 1):
 
         for number, AI in enumerate(AIList):
             AI.mutate()
+            AI.input = [difficulty]
             producedMap = outputToObjects(AI.produceMap((AI.networkLayerSize -1, AI.networkLayerSize -1), baseMap), True)
-            reward = rewardV1.calculateReward(producedMap)
+            if mode == 1:
+                reward = rewardV1.calculateReward(producedMap)
+            elif mode == 2:
+                reward = rewardV2.chooseRewardStructure(producedMap, difficulty)
             rewardList.append(reward)
             mapList.append(producedMap)
 
@@ -248,6 +253,7 @@ def trainAI(laps: int, savedAI: str, mapDiff: int = 1):
         if numberOfBestAI != -1:
             currentAI = AIList[numberOfBestAI].copy()
         if (times+1) % 50 == 0: writeFile(mapList[numberOfBestAI], True, savedAI)
+        if (times) % 500 == 0: saveAI(currentAI, savedAI)
         progressBar(times, laps)
 
     saveAI(currentAI, savedAI)

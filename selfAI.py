@@ -8,7 +8,7 @@ class selfAI():
         self.bridges = []   
         self.output = []
         self.networkLayerSize = 0
-        self.learnRate = 0.04
+        self.learnRate = 0.05
 
     def copy(self, *_): # returns selfAI type object.
         copiedAI = selfAI()
@@ -22,17 +22,17 @@ class selfAI():
             copiedAI.layers.append(layer.copy())
             copiedAI.bridges.append(bridge.copy())
 
-
-        cube = [] # making last bridge as 3d tensor
-        for z in range(self.networkLayerSize):
-            side = []
-            for y in range(self.networkLayerSize): 
-                line = []
-                for x in range(self.networkLayerSize): 
-                    line.append(self.bridges[-1][z][x][y])
-                side.append(line.copy()) 
-            cube.append(side.copy())
-        copiedAI.bridges[-1] = cube.copy()
+        for tensor in range(2):
+            cube = [] # making last bridge as 3d tensor
+            for z in range(len(self.bridges[-2+tensor])):
+                side = []
+                for y in range(len(self.bridges[-2+tensor])): 
+                    line = []
+                    for x in range(len(self.bridges[-2+tensor])): 
+                        line.append(self.bridges[-2+tensor][z][x][y])
+                    side.append(line.copy()) 
+                cube.append(side.copy())
+            copiedAI.bridges.append(cube.copy())
 
         copiedAI.networkLayerSize = self.networkLayerSize
         
@@ -52,17 +52,17 @@ class selfAI():
             self.layers.append(layer.copy())
             self.bridges.append(bridge)
 
-
-        cube = [] # making last bridge as 3d tensor
-        for z in range(layerSize):
-            side = []
-            for y in range(layerSize): 
-                line = []
-                for z in range(layerSize): 
-                    line.append(random.random())
-                side.append(line.copy()) 
-            cube.append(side.copy())
-        self.bridges[-1] = (cube.copy())
+        for _ in range(2):
+            cube = [] # making last bridge as 3d tensor
+            for z in range(layerSize+1):
+                side = []
+                for y in range(layerSize+1): 
+                    line = []
+                    for x in range(layerSize+1): 
+                        line.append(random.random())
+                    side.append(line.copy()) 
+                cube.append(side.copy())
+            self.bridges.append(cube.copy())
             
         self.networkLayerSize = layerSize
             
@@ -92,11 +92,10 @@ class selfAI():
             map.append(line.copy())
         return map
     
-    def runNetwork(self, map: list, mapSize: tuple):
-        self.input = map   
-        self.calculateInputToTier(self.input, self.layers[0])
+    def runNetwork(self, map: list, mapSize: tuple):  
+        self.calculateInputToTier(map.copy(), self.layers[0], self.bridges[-2])
         for layer in range(len(self.layers)-1):
-            self.calculateNextTier(self.layers[layer], self.layers[layer + 1], self.bridges[layer])
+            self.calculateNextTier(self.layers[layer], self.layers[layer + 1], self.bridges[layer+1])
         self.calculateLastTierToOutput(self.layers[-1], self.output, self.bridges[-1], mapSize)
 
 
@@ -112,14 +111,15 @@ class selfAI():
             if sum >= x.bias:
                 x.output = sum - x.bias
 
-    def calculateInputToTier(self, previousTier: list, nextTier: list):
-        for x in nextTier:
+    def calculateInputToTier(self, previousTier: list, nextTier: list, layerBridge: list):
+        previousTier.append(self.input)
+        for xLocation, x in enumerate(nextTier):
             x.output = 0
             sum = 0
             counter = 0
-            for line in previousTier:
-                for y in line:
-                    sum += y
+            for yLocation, y in enumerate(previousTier):
+                for zLocation, z in enumerate(y):
+                    sum += (layerBridge[xLocation][yLocation][zLocation]* z) 
                     counter += 1
             sum /= counter
             if sum >= x.bias:
@@ -140,14 +140,13 @@ class selfAI():
 
         layersLength = len(self.layers)-1
         layerLength = len(self.layers[0])-1
-        bridgesLength = len(self.bridges)-2 # 2: because last bridge is a special tensor
+        bridgesLength = len(self.bridges)-3 # 2: because last two bridges are special tensors
         bridgeLength = len(self.bridges[0])-1
         
         self.layers[random.randint(0, layersLength)][random.randint(0, layerLength)].bias += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
         self.layers[random.randint(0, layersLength)][random.randint(0, layerLength)].bias += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
         self.layers[random.randint(0, layersLength)][random.randint(0, layerLength)].bias += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
 
-
         randomizisedBridge1 = random.randint(0, bridgesLength)
         randomizisedBridge2 = random.randint(0, bridgeLength)
         randomizisedBridge3 = random.randint(0, bridgeLength)
@@ -166,17 +165,17 @@ class selfAI():
         randomizisedBridge1 = random.randint(0, bridgeLength)
         randomizisedBridge2 = random.randint(0, bridgeLength)
         randomizisedBridge3 = random.randint(0, bridgeLength)
-        self.bridges[-1][randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
+        self.bridges[-random.randint(1, 2)][randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
 
         randomizisedBridge1 = random.randint(0, bridgeLength)
         randomizisedBridge2 = random.randint(0, bridgeLength)
         randomizisedBridge3 = random.randint(0, bridgeLength)
-        self.bridges[-1][randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
+        self.bridges[-random.randint(1, 2)][randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
 
         randomizisedBridge1 = random.randint(0, bridgeLength)
         randomizisedBridge2 = random.randint(0, bridgeLength)
         randomizisedBridge3 = random.randint(0, bridgeLength)
-        self.bridges[-1][randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
+        self.bridges[-random.randint(1, 2)][randomizisedBridge1][randomizisedBridge2][randomizisedBridge3] += random.choice([-self.learnRate, -self.learnRate/2, self.learnRate/2, self.learnRate])
 
 
 

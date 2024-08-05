@@ -1,6 +1,6 @@
 from mapSolverAI import *
 from node import * 
-import random, os
+import random, os, rewardMapSolver
 
 def mapDecoder(mapName:str) -> list:
     try:
@@ -208,7 +208,7 @@ def saveAI(AI: mapSolverAI, fixedName: str = None):
     file.close() 
 
 def trainAI(laps: int, savedAI: str):
-    
+    currentAI = None
     try: 
         currentAI = loadAI(savedAI)
         train = True
@@ -219,35 +219,68 @@ def trainAI(laps: int, savedAI: str):
         return
     
     AIList = [] #expanding scope
-    
+    rerun = 0 #needs a value before loop
     mapList = getMaps()
+    print("Amount of loaded training maps:", len(mapList))
     
     for times in range(laps):
         AIList = []
         bestAIs = []
-        rewardList = []
-        baseMap = random.choice(mapList) 
+        if rerun == 0: 
+            baseMap = random.choice(mapList) 
+        
+        currentBest = -1
         numberOfBestAI = -1
-        maxSteps = 200
-        bestAI = maxSteps + 1 
+        maxSteps = 15
+        bestAI = maxSteps + 1
+
+        
 
         for _ in range(100): 
             AIList.append(currentAI.copy())
+        if len(AIList) == 0:
+            print("no AI copies\n")
 
         for number, AI in enumerate(AIList):
             AI.mutate()
             steps = AI.solveMap(baseMap, maxSteps)
-            rewardList.append(steps/maxSteps)
 
-            if steps < bestAI:
+            if steps < bestAI and steps != 0:
                 bestAI = steps
                 numberOfBestAI = number
                 bestAIs = [number]
-            elif steps == bestAI:
-                bestAIs.append[number]
-        if numberOfBestAI != -1:
+                if steps <= 3:
+                    break
+            elif steps == bestAI and steps != 0:
+                bestAIs.append(number)
+
+        if len(bestAIs) == 1:
+            #if (times+1) % 10 == 0: writeFile(currentAI, baseMap, True, savedAI) # if logs are less necessary
+            writeFile(AIList[numberOfBestAI], baseMap, True, savedAI)
             currentAI = AIList[numberOfBestAI].copy()
-        if (times+1) % 25 == 0: writeFile(steps, True, savedAI)
+            rerun = 0
+        else: 
+            currentBest = -1
+            currentReward = -1000
+            for x in bestAIs:
+                reward = rewardMapSolver.rewardPath(AIList[x])
+                if reward > currentReward:
+                    currentBest = x
+                    currentReward = reward 
+            if currentBest != -1:
+                writeFile(AIList[currentBest], baseMap, True, savedAI)
+                currentAI = AIList[currentBest].copy()
+        
+            if bestAI == maxSteps + 1: # if bad evolution (no success with map) was made, increasing the learnrate to initiate a evolution easier
+                currentAI.learnRate = 0.05 + (0.025 * rerun)
+                rerun += 1
+                if rerun == 50:
+                    rerun = 0
+            else:
+                currentAI.learnRate = 0.05
+                rerun = 0
+        
+        if (times+1) % 100 == 0: saveAI(currentAI, savedAI)
         progressBar(times, laps)
 
     saveAI(currentAI, savedAI)
@@ -272,33 +305,45 @@ def getMaps() -> list:
                     lineOfMap = []
                     for x in y:
                         lineOfMap.append(x)
+                    lineOfMap.pop() #deletes the line change marker 
                     processedMap.append(lineOfMap.copy())
-                listOfMaps.append(nameOfMaps)
+                listOfMaps.append(processedMap)
         except:
             print("map not found")
 
     return listOfMaps
 
-def writeFile(steps: int, log = False, name = ""):
+def writeFile(AI: mapSolverAI, map: list, log = False, name = ""):
     fileNameCounter = 0
     run = True
     try:
         if log:
-            os.mkdir("map/"+name)
+            os.mkdir("mapSolverLogs/"+name)
         else:
-            os.mkdir("map")
+            os.mkdir("mapSolverLogs")
     except FileExistsError:
         pass
 
     while run:
         try:
             if log:
-                file = open("map/"+name+"/improvedAIMap"+ str(fileNameCounter) +".txt", "at")
+                file = open("mapSolverLogs/"+name+"/mapSolverLog"+ str(fileNameCounter) +".txt", "at")
             else:
-                file = open("map/improvedAIMap"+ str(fileNameCounter) +".txt", "at")
+                file = open("mapSolverLogs/mapSolverLog"+ str(fileNameCounter) +".txt", "at")
             run = False
         except:
             fileNameCounter += 1
-        file.write(str(steps)) 
+        file.write(str(AI.steps))
+        file.write(str(" "))
+        file.write(str(AI.currentLocation))
+        file.write(str(" "))
+        file.write(str(AI.endLocation))
+        file.write(str(" "))
+        file.write(str(AI.path))
+        file.write(str(" "))
+        file.write(str(AI.learnRate))
+        file.write(str(" "))
+        file.write(str(AI.generation))
+        file.write(str(" "))
         file.write("\n")   
     file.close()

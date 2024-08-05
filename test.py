@@ -1,6 +1,6 @@
 import random
 from multiprocessing import Pool
-
+#just a file where to experiments are run...
 
 # for x in range(100):
 #    print(random.random())
@@ -19,16 +19,31 @@ from multiprocessing import Pool
 # print(line2[2][2])
 
 
-#just a file where to experiments are run...
-
-def f(y):
-    print("hey")
-    return("hey", y)
-def g(y):
-    print("howw")
-    return("hey", y)
 
 
-with Pool(10) as pool:
-    pool.map(f, range(100))
-    pool.map(g, range(100))
+# def f(y):
+#     print("hey")
+#     return("hey", y)
+# def g(y):
+#     print("howw")
+#     return("hey", y)
+
+
+# with Pool(10) as pool:
+#     pool.map(f, range(100))
+#     pool.map(g, range(100))
+
+# list = [1,2,3]
+# appendList = [3,4,5]
+# extendList = [3,4,5]
+# list.append(appendList)
+# list.extend(extendList)
+# print(list)
+# print()
+# for x in range(1000000):
+#     print(x, end="\r")
+# print(x)
+list = [0]*15
+list.pop()
+list.insert(1, 1)
+print(list)

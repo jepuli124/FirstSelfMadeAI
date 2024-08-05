@@ -6,10 +6,15 @@ class mapSolverAI():
         self.steps = 0
         self.layers = [] 
         self.bridges = []   
-        self.output = [0, 0, 0, 0, 0]  #these repesent actions, 0 = left, 1 = up, 2 = right, 3 = Down, 4 = do nothing
+        self.output = [0, 0, 0, 0, 0]  #these repesent actions, by index 0 = left, 1 = up, 2 = right, 3 = Down, 4 = do nothing
         self.path = []
         self.networkLayerSize = 0
-        self.learnRate = 0.03
+        self.learnRate = 0.05
+        self.hitWallInARow = 0
+        self.hitWallTotal = 0
+        self.generation = 0
+        self.currentLocation = [0, 0]
+        self.endLocation = [0, 0]
 
     def copy(self, *_): #returns mapSolverAI object 
         copiedAI = mapSolverAI()
@@ -32,7 +37,8 @@ class mapSolverAI():
             copiedAI.bridges.append(bridgeCube.copy())
 
         copiedAI.networkLayerSize = self.networkLayerSize
-        
+        copiedAI.generation = self.generation
+        copiedAI.learnRate = self.learnRate
         return copiedAI
 
     def makeNewRandomNetwork(self, layerSize: int, layerAmount: int):
@@ -59,12 +65,14 @@ class mapSolverAI():
     
     def decide(self, input: list):
 
-        self.calculateInputToTier(input, self.layers[0])
+        self.calculateInputToTier(input.copy(), self.layers[0])
         for layer in range(len(self.layers)-1):
             self.calculateNextTier(self.layers[layer], self.layers[layer + 1], self.bridges[layer])
         self.calculateOutput(self.layers[-1], self.bridges[-1])
     
     def calculateInputToTier(self, previousTier: list, nextTier: list):
+        previousTier.append(self.path)
+        previousTier.append([self.hitWallInARow])
         for yNext in nextTier:
             for xNext in yNext:
                 xNext.output = 0
@@ -104,75 +112,109 @@ class mapSolverAI():
             self.output[xLocationNext] = sum 
 
     def solveMap(self, map: list, maxSteps: int) -> int:
-        startLocation = (-1, -1) # marked as y, x
-        currentLocation = [-1, -1]
-        endLocation = (-1, -1)
+        self.path = [0]*maxSteps
+        startLocation = [-1, -1] # marked as y, x
+        self.currentLocation = [-1, -1]
+        self.endLocation = [-1, -1]
         numericalMap = []
 
         for ylocation, y in enumerate(map):
             numericalMapLine = []
             for xlocation, x in enumerate(y):
                 if x == "s":
-                    startLocation = (ylocation, xlocation)
-                    currentLocation = [ylocation, xlocation]
+                    startLocation = [ylocation, xlocation]
+                    self.currentLocation = [ylocation, xlocation]
                     numericalMapLine.append(1) # Startpoint, currently not necessary
                 elif x == "e":
-                    endLocation = (ylocation, xlocation)
-                    numericalMapLine.append(2) #End point
+                    self.endLocation = [ylocation, xlocation]
+                    numericalMapLine.append(10) #End point
                 elif x == "b":
-                    numericalMapLine.append(3)  #Block
+                    numericalMapLine.append(-1)  #Block
                 elif x == "t":
-                    numericalMapLine.append(4) #Triangle
+                    numericalMapLine.append(-2) #Triangle
                 elif x == " ":
                     numericalMapLine.append(0) #empty
             if len(numericalMapLine) >= 1:
                 numericalMap.append(numericalMapLine.copy())
-        if startLocation == (-1, -1) or endLocation == (-1, -1):
+        if startLocation == [-1, -1] or self.endLocation == [-1, -1]:
+            self.steps = maxSteps +1
+            self.currentLocation = [-100, -100]
             return maxSteps+1 # in case of training 
-        
-        numericalMap[currentLocation[0]][currentLocation[1]] = 7 #player
-        solid = ['b', 't']
 
-        while currentLocation != endLocation and self.steps <= maxSteps:
-            
+        numericalMap[self.currentLocation[0]][self.currentLocation[1]] = 7 #player
+        solid = ['b', 't']
+        run = True
+        while self.currentLocation != self.endLocation and self.steps <= maxSteps and run:
+            if self.hitWallInARow >= 5 and False: 
+                self.steps = maxSteps +1
+                return maxSteps+1
             self.decide(numericalMap)
             try:
                 match self.output.index(max(self.output)):
                     case 0: # "left"
-                        if map[currentLocation[0]][currentLocation[1]-1] not in solid and currentLocation[1]-1 >= 0:
-                            numericalMap[currentLocation[0]][currentLocation[1]] = 0
-                            currentLocation[1] += -1
-                            numericalMap[currentLocation[0]][currentLocation[1]] = 7
-                            self.path.append("left")
+                        self.path.pop()
+                        self.path.insert(0, 1)
+                        if map[self.currentLocation[0]][self.currentLocation[1]-1] not in solid and self.currentLocation[1]-1 >= 0:
+                            numericalMap[self.currentLocation[0]][self.currentLocation[1]] = 0 # Geting y and x from current location to erase the previous player location from numericalMap
+                            self.currentLocation[1] += -1
+                            numericalMap[self.currentLocation[0]][self.currentLocation[1]] = 7
+                            self.hitWallInARow = 0
+                        else:
+                            self.hitWallInARow += 1
+                            self.hitWallTotal += 1
                     case 1: # "up"
-                        if map[currentLocation[0]-1][currentLocation[1]] not in solid and currentLocation[0]-1 >= 0:
-                            numericalMap[currentLocation[0]][currentLocation[1]] = 0
-                            currentLocation[0] += -1
-                            numericalMap[currentLocation[0]][currentLocation[1]] = 7
-                            self.path.append("up")
+                        self.path.pop()
+                        self.path.insert(0, 2)
+                        if map[self.currentLocation[0]-1][self.currentLocation[1]] not in solid and self.currentLocation[0]-1 >= 0:
+                            numericalMap[self.currentLocation[0]][self.currentLocation[1]] = 0
+                            self.currentLocation[0] += -1
+                            numericalMap[self.currentLocation[0]][self.currentLocation[1]] = 7
+                            self.hitWallInARow = 0
+                        else:
+                            self.hitWallInARow += 1
+                            self.hitWallTotal += 1
                     case 2: # "right"
-                        if map[currentLocation[0]][currentLocation[1]+1] not in solid and currentLocation[1]+1 < len(map[0]):
-                            numericalMap[currentLocation[0]][currentLocation[1]] = 0
-                            currentLocation[1] += 1
-                            numericalMap[currentLocation[0]][currentLocation[1]] = 7
-                            self.path.append("right")
+                        self.path.pop()
+                        self.path.insert(0, 3)
+                        if map[self.currentLocation[0]][self.currentLocation[1]+1] not in solid and self.currentLocation[1]+1 < len(map[0]):
+                            numericalMap[self.currentLocation[0]][self.currentLocation[1]] = 0
+                            self.currentLocation[1] += 1
+                            numericalMap[self.currentLocation[0]][self.currentLocation[1]] = 7
+                            self.hitWallInARow = 0
+                        else:
+                            self.hitWallInARow += 1
+                            self.hitWallTotal += 1
                     case 3: # "down"
-                        if map[currentLocation[0]+1][currentLocation[1]] not in solid and currentLocation[0]+1 < len(map):
-                            numericalMap[currentLocation[0]][currentLocation[1]] = 0
-                            currentLocation[0] += 1
-                            numericalMap[currentLocation[0]][currentLocation[1]] = 7
-                            self.path.append("down")
+                        self.path.pop()
+                        self.path.insert(0, 4)
+                        if map[self.currentLocation[0]+1][self.currentLocation[1]] not in solid and self.currentLocation[0]+1 < len(map):
+                            numericalMap[self.currentLocation[0]][self.currentLocation[1]] = 0
+                            self.currentLocation[0] += 1
+                            numericalMap[self.currentLocation[0]][self.currentLocation[1]] = 7
+                            self.hitWallInARow = 0
+                        else:
+                            self.hitWallInARow += 1
+                            self.hitWallTotal += 1
                     case 4: # "nothing"
-                        pass
-                    case _: # "nothing"
-                        pass
+                        self.path.pop()
+                        self.path.insert(0, -1)
+                        self.hitWallInARow = 0
+                        self.steps = maxSteps + 1
+                        run = False
+                    case _: # "unknown action, should be impossible"
+                        self.path.pop()
+                        self.path.insert(0, -2)
+                        self.hitWallInARow += 1
             except IndexError: # AI is trying to get out of bounds
-                pass
+                self.path.pop()
+                self.path.insert(0, -3)
+                self.hitWallInARow += 1
+                self.hitWallTotal += 1
             self.steps += 1
-
         return self.steps
     
     def mutate(self):
+        self.generation += 1
         layersLength = len(self.layers)-1
         layerLength = len(self.layers[0][0])-1
         bridgesLength = len(self.bridges)-1

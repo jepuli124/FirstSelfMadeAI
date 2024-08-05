@@ -15,19 +15,23 @@ class improvedAI():
 
         for z in range(len(self.layers)):
             layerMatrix = []
-            bridgeCube = []
             for y in range(self.networkLayerSize):
                 layerLine = []
-                bridgeMatrix = []
                 for x in range(self.networkLayerSize):
                     layerLine.append(self.layers[z][y][x].copy())
+                layerMatrix.append(layerLine.copy())
+            copiedAI.layers.append(layerMatrix.copy())
+
+        for z in range(len(self.bridges)):
+            bridgeCube = []
+            for y in range(len(self.bridges[0])):
+                bridgeMatrix = []
+                for x in range(len(self.bridges[0][0])):
                     bridgeLine = []
-                    for fourth in range(self.networkLayerSize):
+                    for fourth in range(len(self.bridges[0][0][0])):
                         bridgeLine.append(self.bridges[z][y][x][fourth].copy())
                     bridgeMatrix.append(bridgeLine.copy())
-                layerMatrix.append(layerLine.copy())
                 bridgeCube.append(bridgeMatrix.copy())
-            copiedAI.layers.append(layerMatrix.copy())
             copiedAI.bridges.append(bridgeCube.copy())
 
         copiedAI.networkLayerSize = self.networkLayerSize
@@ -38,23 +42,28 @@ class improvedAI():
     def makeNewRandomNetwork(self, layerSize: int, layerAmount: int):
         for _ in range(layerAmount):
             layer = []
-            bridge = []
             for z in range(layerSize):
                 layerLine = []
-                bridgeCube = []
                 for y in range(layerSize):
                     layerLine.append(node(random.random()/8))
+                layer.append(layerLine.copy())
+            self.layers.append(layer.copy())
+        
+        for _ in range(layerAmount+1):
+            bridge = []
+            for z in range(layerSize+1):
+                bridgeCube = []
+                for y in range(layerSize+1):
                     bridgeMatrix = []
-                    for x in range(layerSize): # bridge to each other node in the next tier
+                    for x in range(layerSize+1): # bridge to each other node in the next tier
                         bridgeLine = []
-                        for fourthDimension in range(layerSize): #Legendary fifth for loop in row
+                        for fourthDimension in range(layerSize+1): #Legendary fifth for loop in row
                             bridgeLine.append(random.random()/4)
                         bridgeMatrix.append(bridgeLine.copy())
                     bridgeCube.append(bridgeMatrix.copy())
-                layer.append(layerLine.copy())
                 bridge.append(bridgeCube.copy())
-            self.layers.append(layer.copy())
             self.bridges.append(bridge)
+
         self.networkLayerSize = layerSize
             
 
@@ -85,9 +94,9 @@ class improvedAI():
         return map
     
     def runNetwork(self, map: list, mapSize: tuple):   
-        self.calculateInputToTier(map, self.layers[0])
+        self.calculateInputToTier(map.copy(), self.layers[0], self.bridges[0])
         for layer in range(len(self.layers)-1):
-            self.calculateNextTier(self.layers[layer], self.layers[layer + 1], self.bridges[layer])
+            self.calculateNextTier(self.layers[layer], self.layers[layer + 1], self.bridges[layer+1])
         self.calculateOutput(mapSize)
 
 
@@ -105,16 +114,16 @@ class improvedAI():
                 if sum >= xNext.bias:
                     xNext.output = sum - xNext.bias
 
-    def calculateInputToTier(self, previousTier: list, nextTier: list):
+    def calculateInputToTier(self, previousTier: list, nextTier: list, layerBridge: list):
         previousTier.append(self.input)
-        for yNext in nextTier:
-            for xNext in yNext:
+        for yLocationNext, yNext in enumerate(nextTier):
+            for xLocationNext, xNext in enumerate(yNext):
                 xNext.output = 0
                 sum = 0
                 counter = 0
-                for y in previousTier:
-                    for x in y:
-                        sum += x
+                for yLocation, y in enumerate(previousTier):
+                    for xLocation, x in enumerate(y):
+                        sum += (layerBridge[yLocationNext][xLocationNext][yLocation][xLocation] * x) 
                         counter += 1
                 sum /= counter
                 if sum >= xNext.bias:

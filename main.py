@@ -29,7 +29,7 @@ def mainLoop():
 
         match userInput:
             case "1":
-                print("\n1) Random AI\n2) Self Made AI \n3) Torch AI")
+                print("\n1) Random AI\n2) Self Made AI \n3) Improved AI")
                 userInput = input("Which AI? ")
                 mapSizeInput = input("How big map would you like? give x and y cordinates:")
                 mapSize = numberParser(mapSizeInput)
@@ -42,12 +42,18 @@ def mainLoop():
                         for AIFromList in listOfAIs:
                             print(AIFromList)
                         selectedAI = input("Which AI (without '.txt')? ")
-                        selfAIRunner.run(mapSize, savedAI = selectedAI)
+                        mode = numberParser(input("In which difficulty will the map be? 1) easy, 2) medium, 3) hard "))
+                        selfAIRunner.run(mapSize, savedAI = selectedAI, mode = mode[0])
 
                             
                     case "3":
-                        pass
-                        #AITorch.run(mapSize)
+                        listOfAIs = os.listdir("improvedAI/")
+                        print("\nAvailable AIs: ")
+                        for AIFromList in listOfAIs:
+                            print(AIFromList)
+                        selectedAI = input("Which AI (without '.txt')? ")
+                        mode = numberParser(input("In which difficulty will the map be? 1) easy, 2) medium, 3) hard "))
+                        improvedAIRunner.run(mapSize, savedAI = selectedAI, mode = mode[0])
 
             case "2":
                 listOfMaps = os.listdir("map/")
@@ -65,7 +71,7 @@ def mainLoop():
                 userInput = input("Which type of AI? 1) MapMaker v1 (selfAI), 2) MapSolverAI, 3) improved map AI ")
                 match userInput:
                     case "1":
-                        userInput = input("Do you want to configure the new AI? (default 10x10 layer, 5 layers)")
+                        userInput = input("Do you want to configure the new AI? (default 10x10 layer, 5 layers) ")
                         AISize = (10, 5)
                         if "y" in userInput.lower():
                             userInput = input("How many nodes per layer and how many layers? ")
@@ -73,7 +79,7 @@ def mainLoop():
                         newAI = selfAIRunner.makeAI(AISize[0], AISize[1])
                         selfAIRunner.saveAI(newAI)
                     case "2":
-                        userInput = input("Do you want to configure the new AI? (default 10x10 layer, 2 layers)")
+                        userInput = input("Do you want to configure the new AI? (default 10x10 layer, 2 layers) ")
                         AISize = (10, 2)
                         if "y" in userInput.lower():
                             userInput = input("How many nodes per layer and how many layers? ")
@@ -81,7 +87,7 @@ def mainLoop():
                         newAI = mapSolverRunner.makeAI(AISize[0], AISize[1])
                         mapSolverRunner.saveAI(newAI)
                     case "3":
-                        userInput = input("Do you want to configure the new AI? (default 10x10 layer, 2 layers)")
+                        userInput = input("Do you want to configure the new AI? (default 10x10 layer, 2 layers) ")
                         AISize = (10, 2)
                         if "y" in userInput.lower():
                             userInput = input("How many nodes per layer and how many layers? ")
@@ -106,14 +112,18 @@ def mainLoop():
                 selectedAI = input("Which AI (without '.txt')? ")
                 lapsStr = input("How much would you like to train this AI? ")
                 laps = numberParser(lapsStr)
-                print("Starting training\n")
                 match userInput:
                     case "1":
-                        selfAIRunner.trainAI(laps[0], selectedAI)
+                        mode = numberParser(input("In which mode you want to train the AI? 1) fixed, 2) changing difficulty, 3) with map solver, 4) mixed "))
+                        print("Starting training with mode", mode[0],"\n")
+                        selfAIRunner.trainAI(laps[0], selectedAI, mode[0])
                     case "2":
+                        print("Starting training\n")
                         mapSolverRunner.trainAI(laps[0], selectedAI)
                     case "3":
-                        improvedAIRunner.trainAI(laps[0], selectedAI)
+                        mode = numberParser(input("In which mode you want to train the AI? 1) fixed, 2) changing difficulty, 3) with map solver, 4) mixed "))
+                        print("Starting training with mode", mode[0],"\n")
+                        improvedAIRunner.trainAI(laps[0], selectedAI, mode[0])
             case "5":
                 main = False  
 
