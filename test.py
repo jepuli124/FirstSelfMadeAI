@@ -43,7 +43,10 @@ from multiprocessing import Pool
 # for x in range(1000000):
 #     print(x, end="\r")
 # print(x)
-list = [0]*15
+list = [[0, 0]]*15
+for t, x in enumerate(list):
+    print(t, x)
+    list[t][0] += 1
 list.pop()
 list.insert(1, 1)
 print(list)

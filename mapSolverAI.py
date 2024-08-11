@@ -9,12 +9,13 @@ class mapSolverAI():
         self.output = [0, 0, 0, 0, 0]  #these repesent actions, by index 0 = left, 1 = up, 2 = right, 3 = Down, 4 = do nothing
         self.path = []
         self.networkLayerSize = 0
-        self.learnRate = 0.05
+        self.learnRate = 0.0005
         self.hitWallInARow = 0
         self.hitWallTotal = 0
         self.generation = 0
         self.currentLocation = [0, 0]
         self.endLocation = [0, 0]
+        self.log = ""
 
     def copy(self, *_): #returns mapSolverAI object 
         copiedAI = mapSolverAI()
@@ -39,6 +40,12 @@ class mapSolverAI():
         copiedAI.networkLayerSize = self.networkLayerSize
         copiedAI.generation = self.generation
         copiedAI.learnRate = self.learnRate
+        copiedAI.path = self.path.copy()
+        copiedAI.currentLocation = self.currentLocation.copy()
+        copiedAI.endLocation = self.endLocation.copy()
+        copiedAI.steps = self.steps
+        copiedAI.hitWallTotal = self.hitWallTotal
+        copiedAI.log = self.log
         return copiedAI
 
     def makeNewRandomNetwork(self, layerSize: int, layerAmount: int):
@@ -110,23 +117,22 @@ class mapSolverAI():
                     counter += 1
             sum /= counter
             self.output[xLocationNext] = sum 
-
-    def solveMap(self, map: list, maxSteps: int) -> int:
-        self.path = [0]*maxSteps
-        startLocation = [-1, -1] # marked as y, x
-        self.currentLocation = [-1, -1]
-        self.endLocation = [-1, -1]
+    
+    def defineNumericalMap(self, map: list) -> list:
         numericalMap = []
+        startLocation = []
+        currentLocation = []
+        endLocation = []
 
         for ylocation, y in enumerate(map):
             numericalMapLine = []
             for xlocation, x in enumerate(y):
                 if x == "s":
                     startLocation = [ylocation, xlocation]
-                    self.currentLocation = [ylocation, xlocation]
+                    currentLocation = [ylocation, xlocation]
                     numericalMapLine.append(1) # Startpoint, currently not necessary
                 elif x == "e":
-                    self.endLocation = [ylocation, xlocation]
+                    endLocation = [ylocation, xlocation]
                     numericalMapLine.append(10) #End point
                 elif x == "b":
                     numericalMapLine.append(-1)  #Block
@@ -136,18 +142,36 @@ class mapSolverAI():
                     numericalMapLine.append(0) #empty
             if len(numericalMapLine) >= 1:
                 numericalMap.append(numericalMapLine.copy())
+        return numericalMap, startLocation, currentLocation, endLocation
+    
+    def solveMap(self, map: list, maxSteps: int, numericalMap: list = None, locationPackage: list = None) -> int:
+        self.output = [0, 0, 0, 0, 0]
+        self.path = [0]*maxSteps
+        startLocation = [-1, -1] # marked as y, x
+        self.currentLocation = [-1, -1]
+        self.endLocation = [-1, -1]
+        self.hitWallInARow = 0
+        self.hitWallTotal = 0
+        self.steps = 0
+        if numericalMap == None:
+            numericalMap, startLocation, self.currentLocation, self.endLocation = self.defineNumericalMap(map)
+        else:
+            startLocation = locationPackage[0]
+            self.currentLocation = locationPackage[1]
+            self.endLocation = locationPackage[2]
+
         if startLocation == [-1, -1] or self.endLocation == [-1, -1]:
-            self.steps = maxSteps +1
+            self.log += "illigal start or end position"
+            self.steps = maxSteps + 2
             self.currentLocation = [-100, -100]
             return maxSteps+1 # in case of training 
-
         numericalMap[self.currentLocation[0]][self.currentLocation[1]] = 7 #player
         solid = ['b', 't']
         run = True
         while self.currentLocation != self.endLocation and self.steps <= maxSteps and run:
-            if self.hitWallInARow >= 5 and False: 
+            if self.hitWallInARow >= 3: 
                 self.steps = maxSteps +1
-                return maxSteps+1
+                return maxSteps+2
             self.decide(numericalMap)
             try:
                 match self.output.index(max(self.output)):
@@ -199,7 +223,7 @@ class mapSolverAI():
                         self.path.pop()
                         self.path.insert(0, -1)
                         self.hitWallInARow = 0
-                        self.steps = maxSteps + 1
+                        self.steps = maxSteps
                         run = False
                     case _: # "unknown action, should be impossible"
                         self.path.pop()
@@ -210,11 +234,14 @@ class mapSolverAI():
                 self.path.insert(0, -3)
                 self.hitWallInARow += 1
                 self.hitWallTotal += 1
+                self.steps = maxSteps + 2
+                return maxSteps + 3
             self.steps += 1
         return self.steps
     
     def mutate(self):
         self.generation += 1
+        self.log = ""
         layersLength = len(self.layers)-1
         layerLength = len(self.layers[0][0])-1
         bridgesLength = len(self.bridges)-1

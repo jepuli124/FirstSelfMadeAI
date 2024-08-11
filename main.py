@@ -1,4 +1,4 @@
-import AIrandom, selfAIRunner, mapSolverRunner, improvedAIRunner
+import AIrandom, selfAIRunner, mapSolverRunner, improvedAIRunner, AdversarialTraining
 import game
 import os
 
@@ -24,11 +24,11 @@ def mainLoop():
     main = True
     while main:
 
-        print("\n1) Run AI\n2) Play Game\n3) Make an AI\n4) Train AI\n5) Exit")
+        print("\n1) Run AI\n2) Play Game\n3) Make an AI\n4) Train AI\n5) Adversarial training\n6) Exit")
         userInput = input("What shall we do? ")
 
         match userInput:
-            case "1":
+            case "1": # run AI !lacks behind due to not beign important!
                 print("\n1) Random AI\n2) Self Made AI \n3) Improved AI")
                 userInput = input("Which AI? ")
                 mapSizeInput = input("How big map would you like? give x and y cordinates:")
@@ -55,7 +55,7 @@ def mainLoop():
                         mode = numberParser(input("In which difficulty will the map be? 1) easy, 2) medium, 3) hard "))
                         improvedAIRunner.run(mapSize, savedAI = selectedAI, mode = mode[0])
 
-            case "2":
+            case "2": #play game
                 listOfMaps = os.listdir("map/")
                 print("\nAvailable maps: ")
                 listOfMaps.sort()
@@ -67,7 +67,7 @@ def mainLoop():
                 game.start()
                 game.gameLoop(userInput)
                 game.end()
-            case "3":
+            case "3": #Make AI
                 userInput = input("Which type of AI? 1) MapMaker v1 (selfAI), 2) MapSolverAI, 3) improved map AI ")
                 match userInput:
                     case "1":
@@ -95,7 +95,7 @@ def mainLoop():
                         newAI = improvedAIRunner.makeAI(AISize[0], AISize[1])
                         improvedAIRunner.saveAI(newAI)
 
-            case "4":
+            case "4": # Train AI
                 userInput = input("Which type of AI? 1) MapMaker v1 (selfAI), 2) MapSolverAI, 3) improved map AI ")
                 match userInput:
                     case "1":
@@ -125,6 +125,34 @@ def mainLoop():
                         print("Starting training with mode", mode[0],"\n")
                         improvedAIRunner.trainAI(laps[0], selectedAI, mode[0])
             case "5":
+                MapAIType = input("Which type of Map maker AI? 1) MapMaker v1 (selfAI), 2) improved map AI ")
+                match MapAIType:
+                    case "1":
+                        listOfAIs = os.listdir("selfAI/")
+                    case "2":
+                        listOfAIs = os.listdir("improvedAI/")
+                print("\nAvailable AIs: ")
+                listOfAIs.sort()
+                for AIFromList in listOfAIs:
+                    if "txt" in AIFromList:
+                        print(AIFromList)
+                selectedAI1 = input("Which AI (without '.txt')? ")
+                listOfAIs = os.listdir("mapSolverAI/")
+                print("\nAvailable mapSolver AIs: ")
+                listOfAIs.sort()
+                for AIFromList in listOfAIs:
+                    if "txt" in AIFromList:
+                        print(AIFromList)
+                selectedAI2 = input("Which AI (without '.txt')? ")
+                lapsStr = input("How much would you like to train this AI? ")
+                laps = numberParser(lapsStr)
+                match MapAIType:
+                    case "1":
+                        AdversarialTraining.trainSelfAI(selectedAI1, selectedAI2, laps[0])
+                    case "2":
+                        AdversarialTraining.trainImprovedAI(selectedAI1, selectedAI2, laps[0])
+
+            case "6": #end the program
                 main = False  
 
 mainLoop()

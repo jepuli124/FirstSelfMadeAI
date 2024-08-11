@@ -221,6 +221,8 @@ def trainAI(laps: int, savedAI: str):
     AIList = [] #expanding scope
     rerun = 0 #needs a value before loop
     mapList = getMaps()
+    learnRate = 0.005
+    
     print("Amount of loaded training maps:", len(mapList))
     
     for times in range(laps):
@@ -238,8 +240,6 @@ def trainAI(laps: int, savedAI: str):
 
         for _ in range(100): 
             AIList.append(currentAI.copy())
-        if len(AIList) == 0:
-            print("no AI copies\n")
 
         for number, AI in enumerate(AIList):
             AI.mutate()
@@ -249,8 +249,6 @@ def trainAI(laps: int, savedAI: str):
                 bestAI = steps
                 numberOfBestAI = number
                 bestAIs = [number]
-                if steps <= 3:
-                    break
             elif steps == bestAI and steps != 0:
                 bestAIs.append(number)
 
@@ -272,12 +270,12 @@ def trainAI(laps: int, savedAI: str):
                 currentAI = AIList[currentBest].copy()
         
             if bestAI == maxSteps + 1: # if bad evolution (no success with map) was made, increasing the learnrate to initiate a evolution easier
-                currentAI.learnRate = 0.05 + (0.025 * rerun)
+                currentAI.learnRate = learnRate + (learnRate/2 * rerun)
                 rerun += 1
                 if rerun == 50:
                     rerun = 0
             else:
-                currentAI.learnRate = 0.05
+                currentAI.learnRate = learnRate
                 rerun = 0
         
         if (times+1) % 100 == 0: saveAI(currentAI, savedAI)
@@ -344,6 +342,10 @@ def writeFile(AI: mapSolverAI, map: list, log = False, name = ""):
         file.write(str(AI.learnRate))
         file.write(str(" "))
         file.write(str(AI.generation))
+        file.write(str(" "))
+        file.write(str(AI.hitWallTotal))
+        file.write(str(" "))
+        file.write(str(AI.log))
         file.write(str(" "))
         file.write("\n")   
     file.close()
