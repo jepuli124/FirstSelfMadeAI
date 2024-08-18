@@ -135,7 +135,7 @@ def trainImprovedAI(mapMakerAI: improvedAI, mapSolverAI: mapSolverAI, laps: int)
         train = False
     if not train:
         return
-
+    
     solverAIList = [] #expanding scope
     mapAIList = []
     rerun = 0 #needs a value before loop
@@ -144,26 +144,28 @@ def trainImprovedAI(mapMakerAI: improvedAI, mapSolverAI: mapSolverAI, laps: int)
     for times in range(laps):
 
         solverAIList = []
-        
+        bestMapAIs = []
         
         currentBestSolver = -1
-        numberOfBestAI = -1
         maxSteps = 15
+        bestSteps = maxSteps +3
 
         bestSolvers = []
         mapAIList = []
         mapList = []
-        rewardList = []
         difficulty = random.randint(1, 3)  
         baseMap = currentMapAI.mapStartingPosition((currentMapAI.networkLayerSize, currentMapAI.networkLayerSize ))    
         numberOfBestAI = -1
-        bestMapAI = -100 
+        for _ in range(10):
+            bestMapAIs.append([-1000, -1, []])
+
+        reward = -1000
 
         for _ in range(100): 
-            AI = currentSolverAI.copy()
-            AI.learnRate = learnRate
-            AI.mutate()
-            solverAIList.append(AI)
+            solverAI = currentSolverAI.copy()
+            solverAI.learnRate = learnRate
+            solverAI.mutate()
+            solverAIList.append(solverAI)
 
         for _ in range(100): 
             mapAIList.append(currentMapAI.copy())
@@ -173,18 +175,29 @@ def trainImprovedAI(mapMakerAI: improvedAI, mapSolverAI: mapSolverAI, laps: int)
             AI.mutate()
             AI.input = [difficulty] 
             producedMap = improvedAIRunner.outputToObjects(AI.produceMap((AI.networkLayerSize -1, AI.networkLayerSize -1), baseMap), True)
-
-            reward = rewardV2.chooseRewardStructure(producedMap, difficulty)
-            steps, bestSolverAI = mapSolverTime(producedMap, solverAIList, maxSteps)
-            reward -= steps*2
-            rewardList.append(reward)
             mapList.append(producedMap)
-            bestSolvers.append(bestSolverAI.copy())
-
-            if reward > bestMapAI:
-                bestMapAI = reward
-                numberOfBestAI = number
+            reward = rewardV2.chooseRewardStructure(producedMap, difficulty)
+            if reward < bestMapAIs[-1][0]:
+                continue
+            if reward > bestMapAIs[-1][0]:
+                bestMapAIs.append([reward, number, producedMap])
+                bestMapAIs.sort(key=lambda list: list[0], reverse=True)
+                bestMapAIs.pop()
             
+        reward = -1000
+        for index, pack in enumerate(bestMapAIs):
+            if pack[0] != -100:
+                producedMap = pack[2]
+                steps, bestSolverAI = mapSolverTime(producedMap, solverAIList, maxSteps)
+                bestMapAIs[index][0] -= steps*2
+                if bestMapAIs[index][0] > reward:
+                    numberOfBestAI = pack[1]
+                if bestSteps > steps:
+                    bestSteps = steps
+                bestSolvers.append(bestSolverAI.copy())
+
+
+
         if numberOfBestAI != -1:
             currentMapAI = mapAIList[numberOfBestAI].copy()
         improvedAIRunner.writeFile(mapList[numberOfBestAI], True, mapMakerAI)
@@ -204,7 +217,7 @@ def trainImprovedAI(mapMakerAI: improvedAI, mapSolverAI: mapSolverAI, laps: int)
             if currentBestSolver != -1:
                 mapSolverRunner.writeFile(bestSolvers[currentBestSolver], baseMap, True, mapSolverAI)
                 currentSolverAI = bestSolvers[currentBestSolver].copy()
-            if steps == maxSteps + 1: # if bad evolution (no success with map) was made, increasing the learnrate to initiate a evolution easier
+            if bestSteps >= maxSteps + 1: # if bad evolution (no success with map) was made, increasing the learnrate to initiate a evolution easier
                 learnRate = ogLearnRate + (ogLearnRate/2 * rerun)
                 rerun += 1
                 if rerun == 50:
@@ -212,11 +225,13 @@ def trainImprovedAI(mapMakerAI: improvedAI, mapSolverAI: mapSolverAI, laps: int)
             else:
                 learnRate = ogLearnRate
                 rerun = 0
-        
+        #writeFile(bestMapAIs) Easy way to log information for debugging
         if (times+1) % 10 == 0: improvedAIRunner.saveAI(currentMapAI, mapMakerAI)
         if (times+1) % 10 == 0: mapSolverRunner.saveAI(currentSolverAI, mapSolverAI)
 
         mapSolverRunner.progressBar(times, laps)
+    improvedAIRunner.saveAI(currentMapAI, mapMakerAI)
+    mapSolverRunner.saveAI(currentSolverAI, mapSolverAI)
 
 def mapSolverTime(map: list, solverList: list, maxSteps: int) -> list:
     bestSolverAIs = []
